@@ -22,8 +22,8 @@ export default function ProductGrid({ category, searchQuery }: ProductGridProps)
   })
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-      {filteredProducts.map((product) => (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {filteredProducts.map((product, index) => (
         <Card
           key={product.id}
           className="overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer group"
@@ -33,7 +33,15 @@ export default function ProductGrid({ category, searchQuery }: ProductGridProps)
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 z-10">
               <PlusCircle className="h-10 w-10 text-white" />
             </div>
-            <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
+            <Image 
+              src={product.image || "/placeholder.svg"} 
+              alt={product.name} 
+              fill 
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+              priority={index < 5}
+              quality={75}
+            />
           </div>
           <CardContent className="p-3">
             <div>
