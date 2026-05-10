@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, Filter, Edit, Trash2, Package, DollarSign, MoreHorizontal } from "lucide-react"
+import { Plus, Search, Filter, Edit, Trash2, Package, DollarSign, MoreHorizontal, Grid3x3, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -36,6 +36,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(null)
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid")
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     price: 0,
@@ -149,13 +150,34 @@ export default function ProductsPage() {
           <h1 className="text-2xl lg:text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
+        <div className="flex gap-2">
+          <div className="flex gap-1 bg-muted p-1 rounded-lg">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="gap-2"
+            >
+              <Grid3x3 className="h-4 w-4" />
+              Grid
             </Button>
-          </DialogTrigger>
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="gap-2"
+            >
+              <List className="h-4 w-4" />
+              Table
+            </Button>
+          </div>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button onClick={() => resetForm()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
@@ -275,7 +297,8 @@ export default function ProductsPage() {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
@@ -309,7 +332,8 @@ export default function ProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Products Grid */}
+      {/* Products View */}
+      {viewMode === "grid" ? (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredProducts.map((product) => (
           <Card key={product.id} className="overflow-hidden">
@@ -365,6 +389,66 @@ export default function ProductsPage() {
           </Card>
         ))}
       </div>
+      ) : (
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium">Product Name</th>
+                  <th className="px-4 py-3 text-left font-medium">Category</th>
+                  <th className="px-4 py-3 text-right font-medium">Selling Price</th>
+                  <th className="px-4 py-3 text-right font-medium">Cost Price</th>
+                  <th className="px-4 py-3 text-right font-medium">Stock</th>
+                  <th className="px-4 py-3 text-right font-medium">Margin</th>
+                  <th className="px-4 py-3 text-left font-medium">Supplier</th>
+                  <th className="px-4 py-3 text-center font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-4 py-3 font-medium">{product.name}</td>
+                    <td className="px-4 py-3 capitalize text-muted-foreground">{product.category}</td>
+                    <td className="px-4 py-3 text-right font-medium text-green-600">${product.price.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">${product.cost.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Badge variant={product.stock <= product.lowStockThreshold ? "destructive" : "secondary"}>
+                        {product.stock}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {product.cost > 0 ? `${(((product.price - product.cost) / product.price) * 100).toFixed(0)}%` : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{product.supplier}</td>
+                    <td className="px-4 py-3 text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(product)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(product.id)} className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+      )}
 
       {filteredProducts.length === 0 && (
         <Card>

@@ -1,44 +1,13 @@
 "use client"
 
-import type React from "react"
-
-import { Coffee, IceCream, LayoutGrid, Utensils } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { categories } from "../data/categories"
 
 interface CategorySidebarProps {
   selectedCategory: string
   onSelectCategory: (category: string) => void
 }
-
-interface CategoryItem {
-  id: string
-  name: string
-  icon: React.ElementType
-}
-
-const categories: CategoryItem[] = [
-  {
-    id: "all",
-    name: "All Products",
-    icon: LayoutGrid,
-  },
-  {
-    id: "food",
-    name: "Food",
-    icon: Utensils,
-  },
-  {
-    id: "drinks",
-    name: "Drinks",
-    icon: Coffee,
-  },
-  {
-    id: "desserts",
-    name: "Desserts",
-    icon: IceCream,
-  },
-]
 
 export default function CategorySidebar({ selectedCategory, onSelectCategory }: CategorySidebarProps) {
   return (

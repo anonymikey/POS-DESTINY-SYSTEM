@@ -32,9 +32,14 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedOrder, setSelectedOrder] = useState<OrderDetails | null>(null)
   const [showOrderDetails, setShowOrderDetails] = useState(false)
+  const [orderStatuses, setOrderStatuses] = useState<Record<number, string>>({})
 
   useEffect(() => {
     loadOrders()
+    const savedStatuses = localStorage.getItem("order_statuses")
+    if (savedStatuses) {
+      setOrderStatuses(JSON.parse(savedStatuses))
+    }
   }, [])
 
   useEffect(() => {
@@ -89,6 +94,15 @@ export default function OrdersPage() {
   const getStatusBadge = (status: string) => {
     const statusConfig = orderStatuses.find((s) => s.value === status)
     return statusConfig || orderStatuses[0]
+  }
+
+  const handleStatusChange = (orderId: number, newStatus: string) => {
+    const updatedStatuses = { ...orderStatuses, [orderId]: newStatus }
+    setOrderStatuses(updatedStatuses)
+    localStorage.setItem("order_statuses", JSON.stringify(updatedStatuses))
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder({ ...selectedOrder } as OrderDetails)
+    }
   }
 
   const handleViewOrder = (order: OrderDetails) => {
@@ -251,7 +265,21 @@ export default function OrdersPage() {
                         )}
                       </div>
                       <div className="col-span-2">
-                        <Badge className={statusConfig.color}>{statusConfig.label}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={statusConfig.color}>{statusConfig.label}</Badge>
+                          <Select value={orderStatuses[order.id] || status} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
+                            <SelectTrigger className="w-32 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orderStatuses.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                       <div className="col-span-1">
                         <DropdownMenu>
@@ -325,12 +353,26 @@ export default function OrdersPage() {
                     <p>
                       <span className="font-medium">Payment:</span> {selectedOrder.paymentMethod}
                     </p>
-                    <p>
-                      <span className="font-medium">Status:</span>{" "}
-                      <Badge className={getStatusBadge(getOrderStatus(0)).color}>
-                        {getStatusBadge(getOrderStatus(0)).label}
-                      </Badge>
-                    </p>
+                    <div>
+                      <span className="font-medium">Status:</span>
+                      <div className="mt-2">
+                        <Select
+                          value={orderStatuses[selectedOrder.id] || getOrderStatus(0)}
+                          onValueChange={(newStatus) => handleStatusChange(selectedOrder.id, newStatus)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {orderStatuses.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

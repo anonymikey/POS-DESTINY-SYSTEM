@@ -1,19 +1,24 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Settings } from "lucide-react"
+import { Search, Settings, ShoppingCart } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import ProductGrid from "./components/product-grid"
 import CartSidebar from "./components/cart-sidebar"
 import CategorySidebar from "./components/category-sidebar"
+import MobileCartDrawer from "./components/mobile-cart-drawer"
+import MobileCategorySelector from "./components/mobile-category-selector"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { useCart } from "./context/cart-context"
+import { categories } from "./data/categories"
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-
+  const [showMobileCart, setShowMobileCart] = useState(false)
   const router = useRouter()
+  const { itemCount } = useCart()
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background">
@@ -21,14 +26,35 @@ export default function POSPage() {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <div className="sticky top-0 z-10 bg-background p-4 border-b">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-2xl font-bold">Point of Sale</h1>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Button variant="outline" onClick={() => router.push("/admin")} className="w-full sm:w-auto">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold">Point of Sale</h1>
+              <div className="flex gap-2 md:hidden">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMobileCart(true)}
+                  className="relative"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Cart ({itemCount})
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => router.push("/admin")}>
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => router.push("/admin")} className="hidden md:flex">
                 <Settings className="h-4 w-4 mr-2" />
                 Admin
               </Button>
-              <div className="relative">
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <MobileCategorySelector
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                categories={categories}
+              />
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
@@ -47,6 +73,7 @@ export default function POSPage() {
       </main>
 
       <CartSidebar />
+      <MobileCartDrawer isOpen={showMobileCart} onClose={() => setShowMobileCart(false)} />
     </div>
   )
 }
