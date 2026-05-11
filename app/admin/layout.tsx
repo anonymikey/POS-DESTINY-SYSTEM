@@ -27,6 +27,7 @@ const navigation = [
   { name: "Categories", href: "/admin/categories", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Employees", href: "/admin/employees", icon: Users },
   { name: "Organizations", href: "/admin/organizations", icon: Building2 },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },

@@ -1,14 +1,15 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Save, Bell, Lock, Globe, Database, Shield, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { useState, useEffect } from 'react'
+import { Save, Bell, Lock, Globe, Database, Shield, LogOut, AlertCircle, CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { getSystemSetting, updateSystemSetting } from '@/app/services/auth-db'
 
 interface StoreSettings {
   storeName: string
@@ -23,39 +24,57 @@ interface StoreSettings {
   emailNotifications: boolean
   smsNotifications: boolean
   backupEnabled: boolean
+  allowEmployeeSignup: boolean
 }
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
-    storeName: "My POS Store",
-    storeEmail: "owner@store.com",
-    storePhone: "(123) 456-7890",
-    storeAddress: "123 Main St, City, State 12345",
-    timezone: "America/New_York",
-    currency: "USD",
+    storeName: 'My POS Store',
+    storeEmail: 'owner@store.com',
+    storePhone: '(123) 456-7890',
+    storeAddress: '123 Main St, City, State 12345',
+    timezone: 'America/New_York',
+    currency: 'USD',
     taxRate: 8.0,
     discountEnabled: true,
     loyaltyPointsEnabled: true,
     emailNotifications: true,
     smsNotifications: false,
     backupEnabled: true,
+    allowEmployeeSignup: true,
   })
   const [isSaved, setIsSaved] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [showClearDialog, setShowClearDialog] = useState(false)
 
   useEffect(() => {
-    // Load settings from localStorage
-    const savedSettings = localStorage.getItem("pos_settings")
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings))
+    const loadSettings = async () => {
+      try {
+        // Load employee signup setting from database
+        const allowSignup = await getSystemSetting('allow_employee_signup')
+        setSettings((prev) => ({
+          ...prev,
+          allowEmployeeSignup: allowSignup === 'true',
+        }))
+      } catch (err) {
+        console.error('[v0] Error loading settings:', err)
+      } finally {
+        setIsLoading(false)
+      }
     }
+    loadSettings()
   }, [])
 
-  const handleSaveSettings = () => {
-    localStorage.setItem("pos_settings", JSON.stringify(settings))
-    setIsSaved(true)
-    setTimeout(() => setIsSaved(false), 3000)
+  const handleSaveSettings = async () => {
+    try {
+      // Save employee signup setting to database
+      await updateSystemSetting('allow_employee_signup', settings.allowEmployeeSignup ? 'true' : 'false')
+      setIsSaved(true)
+      setTimeout(() => setIsSaved(false), 3000)
+    } catch (err) {
+      console.error('[v0] Error saving settings:', err)
+    }
   }
 
   const handleClearAllData = () => {
@@ -72,9 +91,9 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your POS system configuration and preferences</p>
         </div>
-        <Button onClick={handleSaveSettings} disabled={isSaved}>
+        <Button onClick={handleSaveSettings} disabled={isSaved || isLoading}>
           <Save className="h-4 w-4 mr-2" />
-          {isSaved ? "Saved!" : "Save Settings"}
+          {isSaved ? 'Saved!' : isLoading ? 'Loading...' : 'Save Settings'}
         </Button>
       </div>
 
@@ -222,6 +241,17 @@ export default function SettingsPage() {
                   <Switch
                     checked={settings.loyaltyPointsEnabled}
                     onCheckedChange={(checked) => setSettings({ ...settings, loyaltyPointsEnabled: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Employee Sign-ups</Label>
+                    <p className="text-sm text-muted-foreground">Allow employees to create their own accounts</p>
+                  </div>
+                  <Switch
+                    checked={settings.allowEmployeeSignup}
+                    onCheckedChange={(checked) => setSettings({ ...settings, allowEmployeeSignup: checked })}
                   />
                 </div>
               </div>
