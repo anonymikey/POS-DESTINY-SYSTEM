@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { m } from 'motion/react'
@@ -48,7 +48,12 @@ const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNo
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userType, setUserType] = useState<'employee' | 'admin' | null>(null)
+  const [currentDate, setCurrentDate] = useState<string>('')
   const router = useRouter()
+
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
+  }, [])
 
   const handleEmployeeLogin = () => {
     localStorage.setItem('pos_employee_access', 'true')
@@ -262,7 +267,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="text-right">
-            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            {currentDate || 'Loading...'}
           </div>
         </div>
       </m.div>
