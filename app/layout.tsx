@@ -14,7 +14,15 @@ export const metadata: Metadata = {
   viewport: {
     width: 'device-width',
     initialScale: 1,
-  }
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({
@@ -27,6 +35,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#0c0c0c" />
         <meta charSet="utf-8" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
         <AuthProvider>
