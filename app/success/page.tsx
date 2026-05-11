@@ -1,21 +1,23 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Check, Printer } from "lucide-react"
+import { Check, Printer, Download, RotateCcw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { useCart } from "../context/cart-context"
+import { ReceiptPrinter } from "../components/receipt-printer"
+import { exportToPDF, printWithStyles } from "../services/pdf-export"
 
 export default function SuccessPage() {
   const router = useRouter()
   const { cart, cartTotal, clearCart } = useCart()
+  const receiptRef = useRef<HTMLDivElement>(null)
 
   const tax = cartTotal * 0.1
   const grandTotal = cartTotal + tax
   const receiptNumber = Math.floor(100000 + Math.random() * 900000)
-  const date = new Date().toLocaleString()
+  const date = new Date()
 
   useEffect(() => {
     // If there's no cart data, redirect to POS
@@ -30,7 +32,24 @@ export default function SuccessPage() {
   }
 
   const handlePrint = () => {
-    window.print()
+    if (receiptRef.current) {
+      printWithStyles(receiptRef.current)
+    } else {
+      window.print()
+    }
+  }
+
+  const handlePDF = async () => {
+    if (receiptRef.current) {
+      await exportToPDF(receiptRef.current, `receipt-${receiptNumber}.pdf`, {
+        margin: 5,
+        jsPDF: {
+          orientation: "portrait",
+          unit: "mm",
+          format: "a6", // Small receipt format
+        },
+      })
+    }
   }
 
   if (cart.length === 0) {
@@ -38,63 +57,67 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-md py-8">
-      <div className="rounded-lg border p-6 print:border-none bg-white">
-        <div className="mb-6 flex items-center justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <Check className="h-6 w-6 text-green-600" />
+    <div className="container mx-auto max-w-2xl py-8 px-4">
+      {/* Success Header */}
+      <div className="mb-8 print:mb-4 text-center">
+        <div className="mb-4 flex items-center justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <Check className="h-8 w-8 text-green-600" />
           </div>
         </div>
+        <h1 className="mb-2 text-3xl font-bold">Payment Successful</h1>
+        <p className="text-muted-foreground">Your order has been confirmed</p>
+      </div>
 
-        <h1 className="mb-2 text-center text-2xl font-bold">Payment Successful</h1>
-        <p className="mb-6 text-center text-muted-foreground">Thank you for your purchase!</p>
+      {/* Receipt */}
+      <div className="mb-8 print:mb-0 flex justify-center">
+        <ReceiptPrinter
+          ref={receiptRef}
+          receiptNumber={receiptNumber}
+          items={cart}
+          subtotal={cartTotal}
+          tax={tax}
+          total={grandTotal}
+          date={date}
+          storeName="My Store"
+          storeAddress="123 Main Street"
+          storePhone="(555) 123-4567"
+        />
+      </div>
 
-        <div className="mb-6 text-center">
-          <p className="font-medium">Receipt #{receiptNumber}</p>
-          <p className="text-sm text-muted-foreground">{date}</p>
-        </div>
+      {/* Action Buttons */}
+      <div className="print:hidden flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Button
+          onClick={handlePrint}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Printer className="h-4 w-4" />
+          Print Receipt
+        </Button>
+        <Button
+          onClick={handlePDF}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </Button>
+        <Button
+          onClick={handleBackToPOS}
+          className="flex items-center gap-2"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Back to POS
+        </Button>
+      </div>
 
-        <Separator className="my-4" />
-
-        <div className="space-y-3">
-          {cart.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <div>
-                <p>
-                  {item.name} × {item.quantity}
-                </p>
-              </div>
-              <p>${(item.price * item.quantity).toFixed(2)}</p>
-            </div>
-          ))}
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <p>Subtotal</p>
-            <p>${cartTotal.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between">
-            <p>Tax (10%)</p>
-            <p>${tax.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between font-bold">
-            <p>Total</p>
-            <p>${grandTotal.toFixed(2)}</p>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 print:hidden">
-          <Button onClick={handlePrint} variant="outline" className="w-full">
-            <Printer className="mr-2 h-4 w-4" />
-            Print Receipt
-          </Button>
-          <Button onClick={handleBackToPOS} className="w-full">
-            Go Back to POS
-          </Button>
-        </div>
+      {/* Additional Info */}
+      <div className="print:hidden mt-8 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm">
+        <p className="text-blue-900">
+          <strong>Order Confirmation:</strong> Your receipt number is{" "}
+          <strong>#{receiptNumber}</strong>. Please keep it for your records.
+        </p>
       </div>
     </div>
   )

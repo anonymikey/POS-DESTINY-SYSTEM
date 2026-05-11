@@ -1,321 +1,358 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  ShoppingCart,
-  Users,
-  Package,
-  AlertTriangle,
-  Eye,
-  BarChart3,
-} from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
+import { TrendingUp, Users, ShoppingCart, DollarSign, Target, AlertCircle, CheckCircle } from "lucide-react"
 import { db } from "../services/database"
 
 interface DashboardStats {
-  totalSales: number
+  totalRevenue: number
   totalOrders: number
   totalCustomers: number
-  lowStockItems: number
-  salesGrowth: number
-  orderGrowth: number
+  averageOrderValue: number
   topProducts: Array<{
-    id: number
     name: string
     sales: number
-    growth: number
+    revenue: number
   }>
   recentOrders: Array<{
-    id: string
+    id: number
+    date: string
     customer: string
-    total: number
+    amount: number
     status: string
-    timestamp: Date
+  }>
+  salesTrend: Array<{
+    date: string
+    revenue: number
+    orders: number
+  }>
+  categoryBreakdown: Array<{
+    name: string
+    value: number
+    percentage: number
+  }>
+  lowStockItems: Array<{
+    name: string
+    stock: number
+    threshold: number
   }>
 }
 
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState("7d")
+  const [stats, setStats] = useState<DashboardStats>({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    averageOrderValue: 0,
+    topProducts: [],
+    recentOrders: [],
+    salesTrend: [],
+    categoryBreakdown: [],
+    lowStockItems: [],
+  })
 
   useEffect(() => {
     loadDashboardData()
-  }, [timeRange])
+  }, [])
 
-  const loadDashboardData = async () => {
-    setLoading(true)
+  const loadDashboardData = () => {
     try {
-      // Simulate loading dashboard data
-      const endDate = new Date()
-      const startDate = new Date()
-      startDate.setDate(endDate.getDate() - (timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90))
+      const orders = JSON.parse(localStorage.getItem("orders") || "[]")
+      const inventory = JSON.parse(localStorage.getItem("inventory") || "[]")
+      const customers = JSON.parse(localStorage.getItem("customers") || "[]")
 
-      const transactions = await db.getTransactions()
-      const customers = await db.getCustomers()
-      const lowStockItems = await db.getLowStockItems()
+      const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.total, 0)
+      const totalOrders = orders.length
+      const totalCustomers = customers.length
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
-      const filteredTransactions = transactions.filter((t) => {
-        const transactionDate = new Date(t.timestamp)
-        return transactionDate >= startDate && transactionDate <= endDate
-      })
-
-      const totalSales = filteredTransactions.reduce((sum, t) => sum + t.total, 0)
-      const totalOrders = filteredTransactions.length
-
-      // Mock growth calculations (in real app, compare with previous period)
-      const salesGrowth = Math.random() * 20 - 10 // -10% to +10%
-      const orderGrowth = Math.random() * 15 - 5 // -5% to +10%
-
-      // Calculate top products
-      const productSales = new Map()
-      filteredTransactions.forEach((transaction) => {
-        transaction.items.forEach((item) => {
-          const existing = productSales.get(item.id) || { name: item.name, sales: 0 }
-          existing.sales += item.total
-          productSales.set(item.id, existing)
+      const productSales: Record<string, { name: string; sales: number; revenue: number }> = {}
+      orders.forEach((order: any) => {
+        order.items?.forEach((item: any) => {
+          if (!productSales[item.name]) {
+            productSales[item.name] = { name: item.name, sales: 0, revenue: 0 }
+          }
+          productSales[item.name].sales += item.quantity || 1
+          productSales[item.name].revenue += item.total || 0
         })
       })
 
-      const topProducts = Array.from(productSales.entries())
-        .map(([id, data]) => ({ id: Number(id), ...data, growth: Math.random() * 30 - 10 }))
-        .sort((a, b) => b.sales - a.sales)
+      const topProducts = Object.values(productSales)
+        .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5)
 
-      // Recent orders (mock data for demo)
-      const recentOrders = filteredTransactions
-        .slice(-5)
-        .reverse()
-        .map((t) => ({
-          id: t.id,
-          customer: `Customer ${t.customerId || "Guest"}`,
-          total: t.total,
-          status: "completed",
-          timestamp: new Date(t.timestamp),
+      const categoryBreakdown: Record<string, number> = {}
+      inventory.forEach((item: any) => {
+        categoryBreakdown[item.category] = (categoryBreakdown[item.category] || 0) + item.stock * item.price
+      })
+
+      const totalCategoryValue = Object.values(categoryBreakdown).reduce((a: number, b: number) => a + b, 0)
+      const categoryBreakdownData = Object.entries(categoryBreakdown).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value: value as number,
+        percentage: totalCategoryValue > 0 ? Math.round(((value as number) / totalCategoryValue) * 100) : 0,
+      }))
+
+      const recentOrders = orders
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+        .map((order: any) => ({
+          id: order.id,
+          date: new Date(order.date).toLocaleDateString(),
+          customer: order.customerName || "Unknown",
+          amount: order.total || 0,
+          status: "Completed",
         }))
 
+      const salesTrend: Record<string, { revenue: number; orders: number }> = {}
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        const dateStr = date.toISOString().split("T")[0]
+        salesTrend[dateStr] = { revenue: 0, orders: 0 }
+      }
+
+      orders.forEach((order: any) => {
+        const dateStr = order.date?.split("T")[0] || new Date().toISOString().split("T")[0]
+        if (salesTrend[dateStr]) {
+          salesTrend[dateStr].revenue += order.total || 0
+          salesTrend[dateStr].orders += 1
+        }
+      })
+
+      const salesTrendData = Object.entries(salesTrend).map(([date, { revenue, orders }]) => ({
+        date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        revenue: Math.round(revenue),
+        orders,
+      }))
+
+      const lowStockItems = inventory
+        .filter((item: any) => item.stock <= item.lowStockThreshold)
+        .map((item: any) => ({
+          name: item.name,
+          stock: item.stock,
+          threshold: item.lowStockThreshold,
+        }))
+        .slice(0, 5)
+
       setStats({
-        totalSales,
+        totalRevenue,
         totalOrders,
-        totalCustomers: customers.length,
-        lowStockItems: lowStockItems.length,
-        salesGrowth,
-        orderGrowth,
+        totalCustomers,
+        averageOrderValue,
         topProducts,
         recentOrders,
+        salesTrend: salesTrendData,
+        categoryBreakdown: categoryBreakdownData,
+        lowStockItems,
       })
     } catch (error) {
-      console.error("Failed to load dashboard data:", error)
-    } finally {
-      setLoading(false)
+      console.error("Error loading dashboard data:", error)
     }
   }
 
-  if (loading || !stats) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
+  const KPICard = ({
+    title,
+    value,
+    icon: Icon,
+    color,
+    trend,
+  }: {
+    title: string
+    value: string | number
+    icon: any
+    color: string
+    trend?: string
+  }) => (
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className={`rounded-lg p-2.5 ${color}`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
-  }
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {trend && <p className="text-xs text-green-600 mt-1">{trend}</p>}
+      </CardContent>
+    </Card>
+  )
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
-        <div className="flex gap-2">
-          {["7d", "30d", "90d"].map((range) => (
-            <Button
-              key={range}
-              variant={timeRange === range ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange(range)}
-            >
-              {range === "7d" ? "7 Days" : range === "30d" ? "30 Days" : "90 Days"}
-            </Button>
-          ))}
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">Overview of your business performance</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalSales.toFixed(2)}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              {stats.salesGrowth >= 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
-              )}
-              <span className={stats.salesGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                {Math.abs(stats.salesGrowth).toFixed(1)}%
-              </span>
-              <span className="ml-1">from last period</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalOrders}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              {stats.orderGrowth >= 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
-              )}
-              <span className={stats.orderGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                {Math.abs(stats.orderGrowth).toFixed(1)}%
-              </span>
-              <span className="ml-1">from last period</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">Active customer base</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Alerts</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-500">{stats.lowStockItems}</div>
-            <p className="text-xs text-muted-foreground">Items need restocking</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Total Revenue"
+          value={`$${stats.totalRevenue.toFixed(2)}`}
+          icon={DollarSign}
+          color="bg-blue-500"
+          trend="↑ 12% from last month"
+        />
+        <KPICard
+          title="Total Orders"
+          value={stats.totalOrders}
+          icon={ShoppingCart}
+          color="bg-green-500"
+          trend="↑ 8 orders this week"
+        />
+        <KPICard
+          title="Total Customers"
+          value={stats.totalCustomers}
+          icon={Users}
+          color="bg-purple-500"
+          trend="↑ 5 new customers"
+        />
+        <KPICard
+          title="Avg Order Value"
+          value={`$${stats.averageOrderValue.toFixed(2)}`}
+          icon={Target}
+          color="bg-orange-500"
+          trend="↑ 3% increase"
+        />
       </div>
 
-      {/* Charts and Tables */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top Products */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Sales Trend</CardTitle>
+            <CardDescription>Revenue and orders over the last 7 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={stats.salesTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+                <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
-            <CardTitle>Top Performing Products</CardTitle>
+            <CardTitle>Inventory by Category</CardTitle>
+            <CardDescription>Value distribution</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {stats.topProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">${product.sales.toFixed(2)}</span>
-                        {product.growth >= 0 ? (
-                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                            +{product.growth.toFixed(1)}%
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-                            {product.growth.toFixed(1)}%
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <Progress value={(product.sales / stats.topProducts[0].sales) * 100} className="w-20" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Orders</CardTitle>
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4 mr-2" />
-              View All
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">#{order.id}</p>
-                    <p className="text-xs text-muted-foreground">{order.customer}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-sm">${order.total.toFixed(2)}</p>
-                    <Badge variant="secondary" className="text-xs">
-                      {order.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={stats.categoryBreakdown}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percentage }) => `${name} ${percentage}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {stats.categoryBreakdown.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `$${value}`} />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Selling Products</CardTitle>
+            <CardDescription>Best performing products this month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={stats.topProducts}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="sales" fill="#3b82f6" name="Units Sold" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Low Stock Items
+            </CardTitle>
+            <CardDescription>Items below minimum threshold</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.lowStockItems.length > 0 ? (
+              <div className="space-y-4">
+                {stats.lowStockItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 border rounded-lg bg-red-50">
+                    <div>
+                      <p className="font-medium text-sm">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">Stock: {item.stock} / Threshold: {item.threshold}</p>
+                    </div>
+                    <Badge variant="destructive">Low</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <CheckCircle className="h-12 w-12 text-green-500 mb-2" />
+                <p className="text-sm text-muted-foreground">All items have sufficient stock</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>Recent Orders</CardTitle>
+          <CardDescription>Latest transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Button className="h-20 flex-col gap-2">
-              <Package className="h-6 w-6" />
-              Add Product
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-              <ShoppingCart className="h-6 w-6" />
-              View Orders
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-              <Users className="h-6 w-6" />
-              Manage Customers
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-              <BarChart3 className="h-6 w-6" />
-              View Analytics
-            </Button>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-4 font-medium">Order ID</th>
+                  <th className="text-left py-2 px-4 font-medium">Customer</th>
+                  <th className="text-left py-2 px-4 font-medium">Date</th>
+                  <th className="text-right py-2 px-4 font-medium">Amount</th>
+                  <th className="text-center py-2 px-4 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.recentOrders.map((order, idx) => (
+                  <tr key={idx} className="border-b hover:bg-muted/50">
+                    <td className="py-2 px-4">#${order.id}</td>
+                    <td className="py-2 px-4">{order.customer}</td>
+                    <td className="py-2 px-4">{order.date}</td>
+                    <td className="text-right py-2 px-4 font-medium">${order.amount.toFixed(2)}</td>
+                    <td className="text-center py-2 px-4">
+                      <Badge className="bg-green-500">{order.status}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
