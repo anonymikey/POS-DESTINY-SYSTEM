@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Settings, ShoppingCart } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import ProductGrid from "./components/product-grid"
@@ -17,8 +17,24 @@ export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [showMobileCart, setShowMobileCart] = useState(false)
+  const [isAuthed, setIsAuthed] = useState(false)
   const router = useRouter()
   const { itemCount } = useCart()
+
+  useEffect(() => {
+    // Check if user is coming from landing page with employee access
+    const isEmployee = localStorage.getItem("pos_employee_access") === "true"
+    if (!isEmployee) {
+      // Redirect to landing page if not authenticated as employee
+      router.push("/landing")
+      return
+    }
+    setIsAuthed(true)
+  }, [router])
+
+  if (!isAuthed) {
+    return null // Don't render until auth check is complete
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background">
