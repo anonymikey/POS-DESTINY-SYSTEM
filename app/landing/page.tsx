@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { m } from 'motion/react'
 import { 
   Menu, 
   X, 
@@ -14,27 +12,12 @@ import {
   Package,
   BarChart3,
   Lock,
-  LogIn,
-  Download
+  LogIn
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-
-const AnimatedShinyText = ({ children }: { children: React.ReactNode }) => (
-  <span
-    className="animate-shiny bg-gradient-to-r from-[#091020] via-[#A4F4FD] to-[#091020] bg-[200%] bg-clip-text text-transparent"
-    style={{
-      backgroundSize: '200% auto',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-    }}
-  >
-    {children}
-  </span>
-)
 
 const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div
-    className={`liquid-glass rounded-2xl border border-white/10 backdrop-blur-xl ${className}`}
+    className={`rounded-2xl border border-white/10 backdrop-blur-xl ${className}`}
     style={{
       background: 'rgba(255,255,255,0.01)',
       backdropFilter: 'blur(4px)',
@@ -47,13 +30,9 @@ const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNo
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [userType, setUserType] = useState<'employee' | 'admin' | null>(null)
-  const [currentDate, setCurrentDate] = useState<string>('')
   const router = useRouter()
-
-  useEffect(() => {
-    setCurrentDate(new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
-  }, [])
+  
+  const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   const handleEmployeeLogin = () => {
     localStorage.setItem('pos_employee_access', 'true')
@@ -67,28 +46,13 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#0c0c0c] text-white">
-      {/* Background Video */}
+      {/* Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0c0c0c] via-[#0c0c0c] to-[#0a1b2e] opacity-80" />
       </div>
 
-      {/* Noise Filter SVG */}
-      <svg className="absolute w-0 h-0">
-        <filter id="destiny-noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
-          <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0" />
-          <feComposite in2="SourceGraphic" operator="in" result="noise" />
-          <feBlend in="SourceGraphic" in2="noise" mode="multiply" />
-        </filter>
-      </svg>
-
       {/* Navbar */}
-      <m.nav
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative z-20 border-b border-white/10 bg-black/40 backdrop-blur-xl"
-      >
+      <nav className="relative z-20 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
@@ -99,34 +63,28 @@ export default function LandingPage() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex gap-8 items-center">
-            {['Features', 'Pricing', 'Solutions', 'Blog', 'Support'].map((item, i) => (
-              <m.div key={item} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}>
-                <a href="#" className="text-white/70 text-sm font-medium hover:text-white transition">
-                  {item}
-                </a>
-              </m.div>
+            {['Features', 'Pricing', 'Solutions', 'Blog', 'Support'].map((item) => (
+              <a key={item} href="#" className="text-white/70 text-sm font-medium hover:text-white transition">
+                {item}
+              </a>
             ))}
           </div>
 
           <div className="flex items-center gap-4">
-            {!userType && (
-              <>
-                <button
-                  onClick={handleEmployeeLogin}
-                  className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 text-white text-sm font-medium px-4 py-2 hover:bg-white/5 transition"
-                >
-                  <LogIn className="w-4 h-4" />
-                  Employee Login
-                </button>
-                <button
-                  onClick={handleAdminLogin}
-                  className="hidden sm:flex items-center gap-2 rounded-full bg-white text-black text-sm font-medium px-4 py-2 hover:bg-white/90 transition"
-                >
-                  <Lock className="w-4 h-4" />
-                  Admin Access
-                </button>
-              </>
-            )}
+            <button
+              onClick={handleEmployeeLogin}
+              className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 text-white text-sm font-medium px-4 py-2 hover:bg-white/5 transition"
+            >
+              <LogIn className="w-4 h-4" />
+              Employee Login
+            </button>
+            <button
+              onClick={handleAdminLogin}
+              className="hidden sm:flex items-center gap-2 rounded-full bg-white text-black text-sm font-medium px-4 py-2 hover:bg-white/90 transition"
+            >
+              <Lock className="w-4 h-4" />
+              Admin Access
+            </button>
 
             {/* Mobile Menu Button */}
             <button
@@ -140,12 +98,7 @@ export default function LandingPage() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <m.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-white/10 bg-black/40"
-          >
+          <div className="md:hidden border-t border-white/10 bg-black/40">
             <div className="px-6 py-4 space-y-4">
               {['Features', 'Pricing', 'Solutions', 'Blog', 'Support'].map((item) => (
                 <a key={item} href="#" className="block text-white/70 text-sm hover:text-white">
@@ -167,60 +120,35 @@ export default function LandingPage() {
                 Admin Access
               </button>
             </div>
-          </m.div>
+          </div>
         )}
-      </m.nav>
+      </nav>
 
       {/* Hero Section */}
-      <m.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 pt-16 md:pt-32 pb-24 px-6 text-center flex flex-col items-center"
-      >
+      <section className="relative z-10 pt-16 md:pt-32 pb-24 px-6 text-center flex flex-col items-center">
         {/* Eyebrow */}
-        <m.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6 flex items-center justify-center gap-2"
-        >
+        <div className="mb-6 flex items-center justify-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#A4F4FD]" />
           <span className="text-xs text-white/50 uppercase tracking-widest">POS EXCELLENCE</span>
-        </m.div>
+        </div>
 
         {/* Main Headline */}
-        <m.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8, ease: 'cubic-bezier(.22,1,.36,1)' }}
-          className="text-4xl md:text-7xl font-bold tracking-tight leading-[0.9] mb-6 max-w-4xl"
-        >
+        <h1 className="text-4xl md:text-7xl font-bold tracking-tight leading-[0.9] mb-6 max-w-4xl">
           Your supermarket.{' '}
-          <AnimatedShinyText>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A4F4FD] via-[#A4F4FD] to-[#00d2ff]">
             Unified.
-          </AnimatedShinyText>
-        </m.h1>
+          </span>
+        </h1>
 
         {/* Subheading */}
-        <m.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="mt-8 text-white/60 max-w-2xl text-base md:text-lg leading-relaxed"
-        >
+        <p className="mt-8 text-white/60 max-w-2xl text-base md:text-lg leading-relaxed">
           DESTINY transforms your supermarket operations into a seamless ecosystem. Real-time inventory, lightning-fast checkout, complete employee management, and powerful analytics—all in one unified platform.
-        </m.p>
+        </p>
 
         {/* CTA Buttons */}
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center"
-        >
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button
-            onClick={() => setUserType('employee')}
+            onClick={handleEmployeeLogin}
             className="group inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-semibold text-sm px-6 py-3 hover:bg-white/90 transition-all active:scale-[0.98]"
           >
             <LogIn className="w-4 h-4" />
@@ -228,33 +156,25 @@ export default function LandingPage() {
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </button>
           <button
-            onClick={() => setUserType('admin')}
+            onClick={handleAdminLogin}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 text-white font-medium text-sm px-6 py-3 hover:bg-white/5 transition"
           >
             <Lock className="w-4 h-4" />
             Admin Dashboard
           </button>
-        </m.div>
+        </div>
 
-        <m.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="mt-4 text-xs text-white/40"
-        >
+        <p className="mt-4 text-xs text-white/40">
           Deploy on your infrastructure • Enterprise-grade security • Real-time sync
-        </m.p>
-      </m.section>
+        </p>
+      </section>
 
       {/* macOS-style Menu Bar */}
-      <m.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9 }}
+      <div
         className="relative z-10 h-10 bg-black/40 backdrop-blur-md border-y border-white/10 hidden md:flex max-w-6xl mx-auto"
         style={{ marginLeft: 'auto', marginRight: 'auto' }}
       >
-        <div className="flex-1 max-w-6xl mx-auto px-6 h-full flex items-center justify-between text-xs text-white/60 mx-auto w-full">
+        <div className="flex-1 max-w-6xl mx-auto px-6 h-full flex items-center justify-between text-xs text-white/60 w-full">
           <div className="flex items-center gap-4">
             <Package className="w-3.5 h-3.5" />
             <span className="font-bold text-white/80">DESTINY • POS</span>
@@ -266,19 +186,12 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <div className="text-right">
-            {currentDate || 'Loading...'}
-          </div>
+          <div className="text-right">{currentDate}</div>
         </div>
-      </m.div>
+      </div>
 
       {/* POS Dashboard Mockup */}
-      <m.section
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.1, duration: 0.8 }}
-        className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24"
-      >
+      <section className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24">
         <LiquidGlassCard className="overflow-hidden">
           {/* Title Bar */}
           <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/20">
@@ -347,8 +260,9 @@ export default function LandingPage() {
               ].map((order) => (
                 <div
                   key={order.id}
-                  className={`p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition ${order.status === 'active' ? 'bg-white/10' : 'bg-black/30'
-                    }`}
+                  className={`p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition ${
+                    order.status === 'active' ? 'bg-white/10' : 'bg-black/30'
+                  }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-semibold text-white">#{order.id}</span>
@@ -367,7 +281,9 @@ export default function LandingPage() {
                   <p className="text-sm font-semibold text-white">Transaction #4521</p>
                   <p className="text-xs text-white/50">Maria Lopez • 2:43 PM</p>
                 </div>
-                <span className="text-xs bg-[#A4F4FD]/20 text-[#A4F4FD] px-3 py-1 rounded-full font-medium">Active</span>
+                <span className="text-xs bg-[#A4F4FD]/20 text-[#A4F4FD] px-3 py-1 rounded-full font-medium">
+                  Active
+                </span>
               </div>
 
               <div className="border-t border-white/10 pt-4 space-y-3">
@@ -375,7 +291,9 @@ export default function LandingPage() {
                   <Sparkles className="w-4 h-4 text-[#A4F4FD] flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-semibold text-white">Smart Features Active</p>
-                    <p className="text-xs text-white/60 mt-1">Customer identified • Loyalty applied • No discounts pending</p>
+                    <p className="text-xs text-white/60 mt-1">
+                      Customer identified • Loyalty applied • No discounts pending
+                    </p>
                   </div>
                 </div>
 
@@ -386,7 +304,9 @@ export default function LandingPage() {
                     { item: 'Vegetables Mix', qty: 3, price: '$4.99 each' },
                   ].map((product, i) => (
                     <div key={i} className="flex justify-between text-xs text-white/80">
-                      <span>{product.item} × {product.qty}</span>
+                      <span>
+                        {product.item} × {product.qty}
+                      </span>
                       <span>{product.price}</span>
                     </div>
                   ))}
@@ -414,15 +334,10 @@ export default function LandingPage() {
             </div>
           </div>
         </LiquidGlassCard>
-      </m.section>
+      </section>
 
       {/* Features Section */}
-      <m.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.3 }}
-        className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28"
-      >
+      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Column */}
           <div>
@@ -434,12 +349,16 @@ export default function LandingPage() {
               Enterprise checkout. <br /> Simplified operations.
             </h2>
             <p className="text-white/60 text-base leading-[1.6] max-w-md mb-6">
-              DESTINY brings together inventory management, POS checkout, employee workflows, and real-time analytics. One platform. Complete control.
+              DESTINY brings together inventory management, POS checkout, employee workflows, and real-time analytics.
+              One platform. Complete control.
             </p>
 
             <div className="flex flex-wrap gap-2 mb-8">
               {['Real-time Sync', 'Inventory Tracking', 'Team Management', 'Advanced Analytics'].map((chip) => (
-                <span key={chip} className="text-xs text-white/70 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03]">
+                <span
+                  key={chip}
+                  className="text-xs text-white/70 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03]"
+                >
                   {chip}
                 </span>
               ))}
@@ -449,154 +368,96 @@ export default function LandingPage() {
           {/* Right Column - Feature Cards */}
           <div className="space-y-4">
             {[
-              { title: 'Smart Checkout', desc: 'Lightning-fast transactions with barcode scanning', icon: TrendingUp },
-              { title: 'Team Coordination', desc: 'Manage staff schedules and performance', icon: Users },
-              { title: 'Inventory Control', desc: 'Real-time stock tracking and alerts', icon: Package },
-              { title: 'Powerful Analytics', desc: 'Deep insights into sales and customer behavior', icon: BarChart3 },
-            ].map(({ title, desc, icon: Icon }) => (
-              <LiquidGlassCard key={title} className="p-4">
-                <div className="flex gap-3">
-                  <Icon className="w-5 h-5 text-[#A4F4FD] flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm text-white">{title}</p>
-                    <p className="text-xs text-white/60 mt-1">{desc}</p>
+              { icon: TrendingUp, title: 'Real-Time Analytics', desc: 'Track sales, inventory, and performance instantly' },
+              { icon: Users, title: 'Team Management', desc: 'Manage staff, schedules, and performance metrics' },
+              { icon: BarChart3, title: 'Advanced Reporting', desc: 'Deep insights into sales patterns and trends' },
+            ].map((feature, i) => (
+              <div key={i} className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#A4F4FD]/10 border border-[#A4F4FD]/20 flex items-center justify-center">
+                    <feature.icon className="w-5 h-5 text-[#A4F4FD]" />
                   </div>
                 </div>
-              </LiquidGlassCard>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
+                  <p className="text-xs text-white/60 mt-1">{feature.desc}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      </m.section>
+      </section>
 
-      {/* Login Section */}
-      {userType && (
-        <m.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative z-20 fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        >
-          <m.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 max-w-md w-full"
+      {/* CTA Footer */}
+      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to transform your supermarket?</h2>
+        <p className="text-white/60 max-w-2xl mx-auto mb-8 text-base">
+          Join retailers worldwide using DESTINY to streamline operations and boost profits.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={handleEmployeeLogin}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-semibold px-6 py-3 hover:bg-white/90 transition"
           >
-            <button
-              onClick={() => setUserType(null)}
-              className="absolute top-4 right-4 text-white/50 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="mb-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center mx-auto mb-4">
-                {userType === 'employee' ? (
-                  <LogIn className="w-6 h-6 text-white" />
-                ) : (
-                  <Lock className="w-6 h-6 text-white" />
-                )}
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
-                {userType === 'employee' ? 'Employee Login' : 'Admin Access'}
-              </h3>
-              <p className="text-white/60 text-sm">
-                {userType === 'employee'
-                  ? 'Access the POS checkout and sales system'
-                  : 'Manage inventory, staff, and analytics'}
-              </p>
-            </div>
-
-            <form className="space-y-4" onSubmit={(e) => {
-              e.preventDefault()
-              if (userType === 'employee') {
-                localStorage.setItem('pos_employee_access', 'true')
-                router.push('/')
-              } else {
-                localStorage.setItem('pos_admin_access', 'true')
-                router.push('/admin')
-              }
-            }}>
-              <input
-                type="email"
-                placeholder="Email address"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/40 text-sm"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/40 text-sm"
-              />
-
-              <button
-                type="submit"
-                className="w-full bg-white text-black font-semibold rounded-lg py-2.5 hover:bg-white/90 transition mt-6"
-              >
-                {userType === 'employee' ? 'Enter POS' : 'Admin Dashboard'}
-              </button>
-            </form>
-
-            <p className="text-xs text-white/50 text-center mt-6">
-              Demo credentials • Use any email + password
-            </p>
-          </m.div>
-        </m.section>
-      )}
-
-      {/* Final CTA */}
-      <m.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5 }}
-        className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-32"
-      >
-        <LiquidGlassCard className="relative overflow-hidden rounded-3xl px-8 py-16 md:py-24 text-center">
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              background: 'radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%)',
-            }}
-          />
-
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.02] mb-6">
-              Streamline operations. <br /> Boost revenue.
-            </h2>
-            <p className="mt-6 text-white/60 max-w-md mx-auto text-sm leading-[1.6]">
-              Join supermarkets worldwide using DESTINY to modernize their checkout experience and gain real-time insights into every sale.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button
-                onClick={handleEmployeeLogin}
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-semibold text-sm px-6 py-3 hover:bg-white/90 transition-all active:scale-[0.98]"
-              >
-                <LogIn className="w-4 h-4" />
-                Try Employee Mode
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-              </button>
-              <button
-                onClick={handleAdminLogin}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 text-white text-sm font-medium px-6 py-3 hover:bg-white/5 transition"
-              >
-                <Lock className="w-4 h-4" />
-                Admin Dashboard
-              </button>
-            </div>
-          </div>
-        </LiquidGlassCard>
-      </m.section>
+            <LogIn className="w-4 h-4" />
+            Get Started
+          </button>
+          <button className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 text-white font-medium px-6 py-3 hover:bg-white/5 transition">
+            Learn More
+          </button>
+        </div>
+      </section>
 
       {/* Footer */}
-      <m.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.7 }}
-        className="relative z-10 max-w-6xl mx-auto px-6 py-12 border-t border-white/10 text-center text-xs text-white/50"
-      >
-        <p>DESTINY Supermarket POS System • Enterprise-Grade Point of Sale</p>
-        <p className="mt-2">Secure • Scalable • Supermarket-Built</p>
-      </m.footer>
+      <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
+                  <Package className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-bold">DESTINY</span>
+              </div>
+              <p className="text-xs text-white/60">Enterprise POS for supermarkets</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-xs text-white/60">
+                <li><a href="#" className="hover:text-white">Features</a></li>
+                <li><a href="#" className="hover:text-white">Pricing</a></li>
+                <li><a href="#" className="hover:text-white">Security</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-xs text-white/60">
+                <li><a href="#" className="hover:text-white">About</a></li>
+                <li><a href="#" className="hover:text-white">Blog</a></li>
+                <li><a href="#" className="hover:text-white">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-xs text-white/60">
+                <li><a href="#" className="hover:text-white">Privacy</a></li>
+                <li><a href="#" className="hover:text-white">Terms</a></li>
+                <li><a href="#" className="hover:text-white">Cookies</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-8 flex justify-between items-center text-xs text-white/60">
+            <span>© 2024 DESTINY POS. All rights reserved.</span>
+            <div className="flex gap-4">
+              {['Twitter', 'LinkedIn', 'GitHub'].map((social) => (
+                <a key={social} href="#" className="hover:text-white transition">
+                  {social}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
