@@ -17,7 +17,7 @@ interface OrderDetails extends Transaction {
   customerEmail?: string
 }
 
-const orderStatuses = [
+const ORDER_STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800" },
   { value: "processing", label: "Processing", color: "bg-blue-100 text-blue-800" },
   { value: "completed", label: "Completed", color: "bg-green-100 text-green-800" },
@@ -92,8 +92,8 @@ export default function OrdersPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = orderStatuses.find((s) => s.value === status)
-    return statusConfig || orderStatuses[0]
+    const statusConfig = ORDER_STATUS_OPTIONS.find((s) => s.value === status)
+    return statusConfig || ORDER_STATUS_OPTIONS[0]
   }
 
   const handleStatusChange = (orderId: number, newStatus: string) => {
@@ -206,7 +206,7 @@ export default function OrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {orderStatuses.map((status) => (
+                {ORDER_STATUS_OPTIONS.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
                   </SelectItem>
@@ -272,7 +272,7 @@ export default function OrdersPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {orderStatuses.map((s) => (
+                              {ORDER_STATUS_OPTIONS.map((s) => (
                                 <SelectItem key={s.value} value={s.value}>
                                   {s.label}
                                 </SelectItem>
@@ -364,7 +364,7 @@ export default function OrdersPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {orderStatuses.map((s) => (
+                            {ORDER_STATUS_OPTIONS.map((s) => (
                               <SelectItem key={s.value} value={s.value}>
                                 {s.label}
                               </SelectItem>
