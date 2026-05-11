@@ -23,6 +23,7 @@ interface StoreSettings {
   emailNotifications: boolean
   smsNotifications: boolean
   backupEnabled: boolean
+  allowEmployeeSignup: boolean
 }
 
 export default function SettingsPage() {
@@ -39,6 +40,7 @@ export default function SettingsPage() {
     emailNotifications: true,
     smsNotifications: false,
     backupEnabled: true,
+    allowEmployeeSignup: true,
   })
   const [isSaved, setIsSaved] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -222,6 +224,17 @@ export default function SettingsPage() {
                   <Switch
                     checked={settings.loyaltyPointsEnabled}
                     onCheckedChange={(checked) => setSettings({ ...settings, loyaltyPointsEnabled: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Employee Sign-ups</Label>
+                    <p className="text-sm text-muted-foreground">Allow employees to create their own accounts</p>
+                  </div>
+                  <Switch
+                    checked={settings.allowEmployeeSignup}
+                    onCheckedChange={(checked) => setSettings({ ...settings, allowEmployeeSignup: checked })}
                   />
                 </div>
               </div>

@@ -35,13 +35,11 @@ export default function LandingPage() {
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   const handleEmployeeLogin = () => {
-    localStorage.setItem('pos_employee_access', 'true')
-    router.push('/')
+    router.push('/employee-login')
   }
 
   const handleAdminLogin = () => {
-    localStorage.setItem('pos_admin_access', 'true')
-    router.push('/admin')
+    router.push('/admin-login')
   }
 
   return (
