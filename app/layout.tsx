@@ -7,9 +7,13 @@ import { CartProvider } from "./context/cart-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "POS System",
-  description: "Point of Sale System",
-    generator: 'v0.app'
+  title: "DESTINY - POS System",
+  description: "Enterprise Point of Sale System",
+  generator: 'v0.app',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+  }
 }
 
 export default function RootLayout({
@@ -18,8 +22,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50`}>
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#0c0c0c" />
+        <meta charSet="utf-8" />
+      </head>
+      <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
         <CartProvider>{children}</CartProvider>
       </body>
     </html>
