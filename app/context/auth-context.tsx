@@ -1,22 +1,27 @@
-"use client"
+'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { loginUser, signupUser, getUserById, createEmployee, isEmployeeSignupAllowed } from '@/app/services/auth-db'
 
 export interface User {
   id: string
   email: string
-  fullName: string
-  isAdmin: boolean
-  createdAt: string
+  full_name: string | null
+  role: 'admin' | 'employee'
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (email: string, password: string, isAdmin: boolean) => Promise<void>
-  signup: (email: string, password: string, fullName: string) => Promise<void>
-  adminSignup: (email: string, password: string, fullName: string) => Promise<void>
+  userRole: 'admin' | 'employee' | null
+  login: (email: string, password: string) => Promise<{ success: boolean; error: string | null }>
+  signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error: string | null }>
+  adminSignup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error: string | null }>
+  createEmployeeAccount: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error: string | null }>
   logout: () => Promise<void>
 }
 
@@ -30,12 +35,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedUser = localStorage.getItem("auth_user")
+        const storedUser = localStorage.getItem('auth_user')
         if (storedUser) {
-          setUser(JSON.parse(storedUser))
+          const parsedUser = JSON.parse(storedUser)
+          // Verify user still exists in database
+          const dbUser = await getUserById(parsedUser.id)
+          if (dbUser) {
+            setUser(dbUser)
+          } else {
+            localStorage.removeItem('auth_user')
+          }
         }
       } catch (error) {
-        console.error("Error loading auth user:", error)
+        console.error('[v0] Error loading auth user:', error)
+        localStorage.removeItem('auth_user')
       } finally {
         setIsLoading(false)
       }
@@ -43,110 +56,99 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser()
   }, [])
 
-  const login = async (email: string, password: string, isAdmin: boolean) => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error: string | null }> => {
     setIsLoading(true)
     try {
-      // In production, this would call a backend API
-      // For now, we'll simulate authentication with localStorage
-      const users = JSON.parse(localStorage.getItem("pos_users") || "[]")
-      const foundUser = users.find(
-        (u: any) => u.email === email && u.password === password && u.isAdmin === isAdmin
-      )
+      const { user: dbUser, error } = await loginUser({ email, password })
 
-      if (!foundUser) {
-        throw new Error("Invalid email or password")
+      if (error || !dbUser) {
+        return { success: false, error: error || 'Login failed' }
       }
 
-      const authUser: User = {
-        id: foundUser.id,
-        email: foundUser.email,
-        fullName: foundUser.fullName,
-        isAdmin: foundUser.isAdmin,
-        createdAt: foundUser.createdAt,
-      }
-
-      setUser(authUser)
-      localStorage.setItem("auth_user", JSON.stringify(authUser))
+      setUser(dbUser)
+      localStorage.setItem('auth_user', JSON.stringify(dbUser))
+      return { success: true, error: null }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
+      return { success: false, error: errorMessage }
     } finally {
       setIsLoading(false)
     }
   }
 
-  const signup = async (email: string, password: string, fullName: string) => {
+  const signup = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error: string | null }> => {
     setIsLoading(true)
     try {
-      const users = JSON.parse(localStorage.getItem("pos_users") || "[]")
-
-      // Check if user already exists
-      if (users.some((u: any) => u.email === email)) {
-        throw new Error("User already exists")
+      // Check if employee signup is allowed
+      const signupAllowed = await isEmployeeSignupAllowed()
+      if (!signupAllowed) {
+        return { success: false, error: 'Employee signup is currently disabled. Contact your administrator.' }
       }
 
-      // Check if employee signup is enabled
-      const settings = JSON.parse(localStorage.getItem("pos_settings") || "{}")
-      if (!settings.allowEmployeeSignup) {
-        throw new Error("Employee signup is currently disabled. Contact your administrator.")
-      }
-
-      const newUser = {
-        id: `user_${Date.now()}`,
+      const { user: newUser, error } = await signupUser({
         email,
-        password, // In production, this should be hashed
-        fullName,
-        isAdmin: false,
-        createdAt: new Date().toISOString(),
+        password,
+        full_name: fullName,
+        role: 'employee',
+      })
+
+      if (error || !newUser) {
+        return { success: false, error: error || 'Signup failed' }
       }
 
-      users.push(newUser)
-      localStorage.setItem("pos_users", JSON.stringify(users))
-
-      const authUser: User = {
-        id: newUser.id,
-        email: newUser.email,
-        fullName: newUser.fullName,
-        isAdmin: false,
-        createdAt: newUser.createdAt,
-      }
-
-      setUser(authUser)
-      localStorage.setItem("auth_user", JSON.stringify(authUser))
+      setUser(newUser)
+      localStorage.setItem('auth_user', JSON.stringify(newUser))
+      return { success: true, error: null }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup'
+      return { success: false, error: errorMessage }
     } finally {
       setIsLoading(false)
     }
   }
 
-  const adminSignup = async (email: string, password: string, fullName: string) => {
+  const adminSignup = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error: string | null }> => {
     setIsLoading(true)
     try {
-      const users = JSON.parse(localStorage.getItem("pos_users") || "[]")
-
-      // Check if user already exists
-      if (users.some((u: any) => u.email === email)) {
-        throw new Error("User already exists")
-      }
-
-      const newAdmin = {
-        id: `user_${Date.now()}`,
+      const { user: newAdmin, error } = await signupUser({
         email,
-        password, // In production, this should be hashed
-        fullName,
-        isAdmin: true,
-        createdAt: new Date().toISOString(),
+        password,
+        full_name: fullName,
+        role: 'admin',
+      })
+
+      if (error || !newAdmin) {
+        return { success: false, error: error || 'Admin signup failed' }
       }
 
-      users.push(newAdmin)
-      localStorage.setItem("pos_users", JSON.stringify(users))
+      setUser(newAdmin)
+      localStorage.setItem('auth_user', JSON.stringify(newAdmin))
+      return { success: true, error: null }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup'
+      return { success: false, error: errorMessage }
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-      const authUser: User = {
-        id: newAdmin.id,
-        email: newAdmin.email,
-        fullName: newAdmin.fullName,
-        isAdmin: true,
-        createdAt: newAdmin.createdAt,
+  const createEmployeeAccount = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error: string | null }> => {
+    setIsLoading(true)
+    try {
+      const { user: newEmployee, error } = await createEmployee({
+        email,
+        password,
+        full_name: fullName,
+      })
+
+      if (error || !newEmployee) {
+        return { success: false, error: error || 'Failed to create employee account' }
       }
 
-      setUser(authUser)
-      localStorage.setItem("auth_user", JSON.stringify(authUser))
+      return { success: true, error: null }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      return { success: false, error: errorMessage }
     } finally {
       setIsLoading(false)
     }
@@ -154,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     setUser(null)
-    localStorage.removeItem("auth_user")
+    localStorage.removeItem('auth_user')
   }
 
   return (
@@ -163,9 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        userRole: user?.role || null,
         login,
         signup,
         adminSignup,
+        createEmployeeAccount,
         logout,
       }}
     >
@@ -177,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }

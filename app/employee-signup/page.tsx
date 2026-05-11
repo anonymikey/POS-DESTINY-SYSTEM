@@ -50,8 +50,12 @@ export default function EmployeeSignupPage() {
 
     setIsLoading(true)
     try {
-      await signup(email, password, fullName)
-      router.push("/")
+      const { success, error: signupError } = await signup(email, password, fullName)
+      if (success) {
+        router.push("/")
+      } else {
+        setError(signupError || "Signup failed")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed")
     } finally {

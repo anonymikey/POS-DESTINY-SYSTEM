@@ -44,8 +44,12 @@ export default function AdminSignupPage() {
 
     setIsLoading(true)
     try {
-      await adminSignup(email, password, fullName)
-      router.push("/admin")
+      const { success, error: signupError } = await adminSignup(email, password, fullName)
+      if (success) {
+        router.push("/admin")
+      } else {
+        setError(signupError || "Signup failed")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed")
     } finally {

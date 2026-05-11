@@ -27,8 +27,12 @@ export default function EmployeeLoginPage() {
 
     setIsLoading(true)
     try {
-      await login(email, password, false) // false for employee
-      router.push("/")
+      const { success, error: loginError } = await login(email, password)
+      if (success) {
+        router.push("/")
+      } else {
+        setError(loginError || "Login failed")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
