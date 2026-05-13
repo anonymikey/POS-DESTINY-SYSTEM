@@ -101,8 +101,7 @@ When the system first runs, it creates demo accounts:
 app/
 ├── context/
 │   └── auth-context.tsx              # Auth context provider
-├── utils/
-│   └── auth-demo.ts                  # Demo account setup
+
 ├── admin-signup/
 │   └── page.tsx                      # Admin registration
 ├── admin-login/
@@ -172,34 +171,9 @@ export default function MyComponent() {
 }
 ```
 
-## Demo Workflow
-
-### First Time Setup
-1. Visit `/landing`
-2. Click "Admin Access"
-3. Click "Create one here" to go to `/admin-signup`
-4. Create first admin account
-5. Login to `/admin`
-6. Go to "Employees" section
-7. Create employee accounts
-8. Toggle "Employee Sign-ups" in Settings if desired
-
-### Employee Signup Flow
-1. Visit `/landing`
-2. Click "Employee Login"
-3. Click "Sign up here" to go to `/employee-signup`
-4. If signup is enabled, create account
-5. Redirected to `/` (POS system)
-
-### Employee Login Flow
-1. Visit `/landing`
-2. Click "Employee Login"
-3. Enter credentials
-4. Redirected to `/` (POS system)
-
 ## Security Notes
 
-⚠️ **Current Implementation**: Uses localStorage with plain-text passwords for demo purposes.
+✅ **Production Ready**: Uses Supabase with bcrypt password hashing and secure authentication.
 
 ### Production Recommendations
 1. Implement real authentication with Supabase Auth
@@ -212,9 +186,7 @@ export default function MyComponent() {
 
 ## Environment Setup
 
-No additional environment variables needed for the demo. The system works with localStorage.
-
-### For Production with Supabase
+### Supabase Configuration
 Add to `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_url

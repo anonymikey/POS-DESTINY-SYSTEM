@@ -73,18 +73,6 @@
 
 ---
 
-## Demo Credentials (Pre-loaded)
-
-When you first load the app, these demo accounts are automatically created:
-
-**Admin:**
-- Email: `admin@example.com`
-- Password: `password123`
-
-**Employee:**
-- Email: `employee@example.com`
-- Password: `password123`
-
 ---
 
 ## Features

@@ -1,17 +1,18 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Search, Settings, ShoppingCart } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import ProductGrid from "./components/product-grid"
-import CartSidebar from "./components/cart-sidebar"
-import CategorySidebar from "./components/category-sidebar"
-import MobileCartDrawer from "./components/mobile-cart-drawer"
-import MobileCategorySelector from "./components/mobile-category-selector"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useCart } from "./context/cart-context"
-import { categories } from "./data/categories"
+import { useState, useEffect } from 'react'
+import { Search, Settings, ShoppingCart } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import ProductGrid from './components/product-grid'
+import CartSidebar from './components/cart-sidebar'
+import CategorySidebar from './components/category-sidebar'
+import MobileCartDrawer from './components/mobile-cart-drawer'
+import MobileCategorySelector from './components/mobile-category-selector'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { useCart } from './context/cart-context'
+import { categories } from './data/categories'
+import { OnboardingModal } from './components/onboarding-modal'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -90,6 +91,7 @@ export default function POSPage() {
 
       <CartSidebar />
       <MobileCartDrawer isOpen={showMobileCart} onClose={() => setShowMobileCart(false)} />
+      <OnboardingModal />
     </div>
   )
 }
