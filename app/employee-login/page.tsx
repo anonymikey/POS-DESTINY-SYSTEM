@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Lock, Mail, AlertCircle } from "lucide-react"
+import { Lock, Mail, AlertCircle, Info } from "lucide-react"
 
 export default function EmployeeLoginPage() {
   const [email, setEmail] = useState("")
@@ -99,21 +98,13 @@ export default function EmployeeLoginPage() {
             </Button>
           </form>
 
-          {/* Signup Link */}
-          <div className="mt-6 text-center">
-            <p className="text-slate-400 text-sm">
-              New employee?{" "}
-              <Link href="/employee-signup" className="text-green-400 hover:text-green-300 font-medium">
-                Sign up here
-              </Link>
-            </p>
-          </div>
-
-          {/* Demo Info */}
-          <div className="mt-6 p-4 bg-slate-700/50 border border-slate-600 rounded-lg">
-            <p className="text-slate-400 text-xs mb-2 font-medium">Demo Credentials:</p>
-            <p className="text-slate-400 text-xs">Email: employee@example.com</p>
-            <p className="text-slate-400 text-xs">Password: password123</p>
+          {/* Admin Account Info */}
+          <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-slate-300 text-xs">
+              <p className="font-medium text-blue-400 mb-1">Don&apos;t have login credentials?</p>
+              <p>Contact your administrator to create an employee account. Employees cannot self-register for security and data protection.</p>
+            </div>
           </div>
         </div>
       </div>
