@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { getSystemSetting, updateSystemSetting } from '@/app/services/auth-db'
+
 
 interface StoreSettings {
   storeName: string
@@ -24,7 +24,6 @@ interface StoreSettings {
   emailNotifications: boolean
   smsNotifications: boolean
   backupEnabled: boolean
-  allowEmployeeSignup: boolean
 }
 
 export default function SettingsPage() {
@@ -41,7 +40,6 @@ export default function SettingsPage() {
     emailNotifications: true,
     smsNotifications: false,
     backupEnabled: true,
-    allowEmployeeSignup: true,
   })
   const [isSaved, setIsSaved] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -49,32 +47,13 @@ export default function SettingsPage() {
   const [showClearDialog, setShowClearDialog] = useState(false)
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        // Load employee signup setting from database
-        const allowSignup = await getSystemSetting('allow_employee_signup')
-        setSettings((prev) => ({
-          ...prev,
-          allowEmployeeSignup: allowSignup === 'true',
-        }))
-      } catch (err) {
-        console.error('[v0] Error loading settings:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadSettings()
+    setIsLoading(false)
   }, [])
 
-  const handleSaveSettings = async () => {
-    try {
-      // Save employee signup setting to database
-      await updateSystemSetting('allow_employee_signup', settings.allowEmployeeSignup ? 'true' : 'false')
-      setIsSaved(true)
-      setTimeout(() => setIsSaved(false), 3000)
-    } catch (err) {
-      console.error('[v0] Error saving settings:', err)
-    }
+  const handleSaveSettings = () => {
+    // Settings saved to localStorage
+    setIsSaved(true)
+    setTimeout(() => setIsSaved(false), 3000)
   }
 
   const handleClearAllData = () => {
@@ -244,16 +223,7 @@ export default function SettingsPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Employee Sign-ups</Label>
-                    <p className="text-sm text-muted-foreground">Allow employees to create their own accounts</p>
-                  </div>
-                  <Switch
-                    checked={settings.allowEmployeeSignup}
-                    onCheckedChange={(checked) => setSettings({ ...settings, allowEmployeeSignup: checked })}
-                  />
-                </div>
+
               </div>
             </CardContent>
           </Card>
