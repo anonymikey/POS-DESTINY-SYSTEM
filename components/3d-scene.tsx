@@ -25,15 +25,15 @@ const Card3D = ({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null)
   const groupRef = useRef<THREE.Group>(null)
+  const timeRef = useRef(0)
 
   // Create a subtle floating animation
   const startY = position[1]
-  let time = 0
 
   useFrame(() => {
     if (meshRef.current) {
-      time += 0.002
-      meshRef.current.position.y = startY + Math.sin(time) * 0.1
+      timeRef.current += 0.002
+      meshRef.current.position.y = startY + Math.sin(timeRef.current) * 0.1
     }
   })
 
