@@ -14,6 +14,7 @@ import {
   Lock,
   LogIn
 } from 'lucide-react'
+import { Slider3D } from '@/components/3d-slider-section'
 
 const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div
@@ -385,6 +386,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* 3D Slider Section */}
+      <Slider3D />
 
       {/* CTA Footer */}
       <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
