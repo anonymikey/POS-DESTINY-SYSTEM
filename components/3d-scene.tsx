@@ -2,7 +2,7 @@
 
 import { useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { PerspectiveCamera, PointLight, AmbientLight } from '@react-three/drei'
+import { PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
 
 interface CardData {
@@ -144,10 +144,10 @@ const Scene3DContent = ({ scrollProgress, cards }: Scene3DProps) => {
       <PerspectiveCamera makeDefault position={[6, 1, 0]} fov={50} near={0.1} far={1000} />
 
       {/* Lighting */}
-      <AmbientLight intensity={0.6} />
-      <PointLight position={[5, 5, 5]} intensity={1.2} color="#A4F4FD" />
-      <PointLight position={[-5, 3, -5]} intensity={0.8} color="#00d2ff" />
-      <PointLight position={[0, -2, 0]} intensity={0.5} color="#ffffff" />
+      <ambientLight intensity={0.6} />
+      <pointLight position={[5, 5, 5]} intensity={1.2} color="#A4F4FD" />
+      <pointLight position={[-5, 3, -5]} intensity={0.8} color="#00d2ff" />
+      <pointLight position={[0, -2, 0]} intensity={0.5} color="#ffffff" />
 
       {/* Render cards */}
       {cards.map((card, index) => (
