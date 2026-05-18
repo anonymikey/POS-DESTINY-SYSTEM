@@ -184,7 +184,7 @@ export default function LandingPage() {
 
       {/* POS Dashboard Mockup */}
       <section className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24">
-        <LiquidGlassCard className="overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-lg">
           {/* Title Bar */}
           <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/20">
             <div className="flex gap-2">
@@ -325,7 +325,7 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-        </LiquidGlassCard>
+        </div>
       </section>
 
       {/* Features Section */}
