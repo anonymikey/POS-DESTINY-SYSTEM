@@ -9,12 +9,11 @@ import {
   Sparkles, 
   TrendingUp, 
   Users, 
-  Package,
   BarChart3,
   Lock,
   LogIn
 } from 'lucide-react'
-import { Slider3D } from '@/components/3d-slider-section'
+
 
 const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div
@@ -54,10 +53,11 @@ export default function LandingPage() {
       <nav className="relative z-20 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
-              <Package className="w-5 h-5 text-white" />
+            <img src="/logo.png" alt="DESTINY SUPERMARKET" className="w-10 h-10 object-contain" />
+            <div className="flex flex-col leading-none">
+              <span className="text-lg font-bold tracking-tight">DESTINY</span>
+              <span className="text-xs text-white/60">SUPERMARKET</span>
             </div>
-            <span className="text-lg font-bold tracking-tight">DESTINY</span>
           </div>
 
           {/* Desktop Menu */}
@@ -387,8 +387,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3D Slider Section */}
-      <Slider3D />
+
 
       {/* CTA Footer */}
       <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
@@ -416,12 +415,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
-                  <Package className="w-4 h-4 text-white" />
-                </div>
+                <img src="/logo.png" alt="DESTINY SUPERMARKET" className="w-8 h-8 object-contain" />
                 <span className="font-bold">DESTINY</span>
               </div>
-              <p className="text-xs text-white/60">Enterprise POS for supermarkets</p>
+              <p className="text-xs text-white/60">DESTINY SUPERMARKET • Enterprise POS System</p>
             </div>
             <div>
               <h4 className="text-sm font-semibold mb-4">Product</h4>
