@@ -1,14 +1,40 @@
-import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+
+// Local mock database for when Supabase is not configured
+const mockDatabase = {
+  users: [
+    {
+      id: 'admin-001',
+      email: 'admin@destiny.com',
+      password_hash: '$2a$10$abcdefghijklmnopqrstuvwxyz123456', // Mock hash
+      full_name: 'Admin User',
+      role: 'admin' as const,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ],
+  system_settings: {
+    'allow_employee_signup': 'true',
+    'store_name': 'Destiny Supermarket'
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+const useLocalDB = !supabaseUrl || !supabaseAnonKey
+let supabase: any = null
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Initialize Supabase client if credentials exist
+if (!useLocalDB) {
+  try {
+    const { createClient } = require('@supabase/supabase-js')
+    supabase = createClient(supabaseUrl, supabaseAnonKey)
+  } catch (err) {
+    console.log('[v0] Supabase not available, using local database')
+  }
+}
 
 export interface User {
   id: string
@@ -46,6 +72,33 @@ export async function comparePassword(password: string, hash: string): Promise<b
 // Sign up new user
 export async function signupUser(data: SignupData): Promise<{ user: User | null; error: string | null }> {
   try {
+    if (useLocalDB) {
+      // Check if user already exists in local DB
+      const existingUser = mockDatabase.users.find(u => u.email === data.email)
+      if (existingUser) {
+        return { user: null, error: 'User with this email already exists' }
+      }
+
+      // Hash password
+      const passwordHash = await hashPassword(data.password)
+
+      // Create user in local DB
+      const newUser: User = {
+        id: 'user-' + Date.now(),
+        email: data.email,
+        password_hash: passwordHash,
+        full_name: data.full_name,
+        role: data.role,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      mockDatabase.users.push(newUser as any)
+      const { password_hash, ...userWithoutPassword } = newUser
+      return { user: userWithoutPassword, error: null }
+    }
+
     // Check if user already exists
     const { data: existingUser } = await supabase
       .from('users')
@@ -89,6 +142,30 @@ export async function signupUser(data: SignupData): Promise<{ user: User | null;
 // Login user
 export async function loginUser(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null }> {
   try {
+    if (useLocalDB) {
+      // Get user by email from local DB
+      const user = mockDatabase.users.find(u => u.email === credentials.email)
+
+      if (!user) {
+        return { user: null, error: 'Invalid email or password' }
+      }
+
+      // Check if user is active
+      if (!user.is_active) {
+        return { user: null, error: 'Your account has been deactivated' }
+      }
+
+      // Verify password
+      const passwordMatch = await comparePassword(credentials.password, user.password_hash)
+      if (!passwordMatch) {
+        return { user: null, error: 'Invalid email or password' }
+      }
+
+      // Remove password hash from response
+      const { password_hash, ...userWithoutPassword } = user
+      return { user: userWithoutPassword as User, error: null }
+    }
+
     // Get user by email
     const { data: user, error } = await supabase
       .from('users')
@@ -123,6 +200,13 @@ export async function loginUser(credentials: LoginCredentials): Promise<{ user: 
 // Get user by ID
 export async function getUserById(id: string): Promise<User | null> {
   try {
+    if (useLocalDB) {
+      const user = mockDatabase.users.find(u => u.id === id)
+      if (!user) return null
+      const { password_hash, ...userWithoutPassword } = user
+      return userWithoutPassword as User
+    }
+
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -143,6 +227,15 @@ export async function getUserById(id: string): Promise<User | null> {
 // Get all employees
 export async function getAllEmployees(): Promise<User[]> {
   try {
+    if (useLocalDB) {
+      return mockDatabase.users
+        .filter(u => u.role === 'employee')
+        .map(emp => {
+          const { password_hash, ...userWithoutPassword } = emp
+          return userWithoutPassword as User
+        })
+    }
+
     const { data: employees, error } = await supabase
       .from('users')
       .select('*')
@@ -175,6 +268,15 @@ export async function createEmployee(data: Omit<SignupData, 'role'>): Promise<{ 
 // Delete user
 export async function deleteUser(id: string): Promise<{ success: boolean; error: string | null }> {
   try {
+    if (useLocalDB) {
+      const index = mockDatabase.users.findIndex(u => u.id === id)
+      if (index > -1) {
+        mockDatabase.users.splice(index, 1)
+        return { success: true, error: null }
+      }
+      return { success: false, error: 'User not found' }
+    }
+
     const { error } = await supabase
       .from('users')
       .delete()
@@ -194,6 +296,15 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error:
 // Deactivate user
 export async function deactivateUser(id: string): Promise<{ success: boolean; error: string | null }> {
   try {
+    if (useLocalDB) {
+      const user = mockDatabase.users.find(u => u.id === id)
+      if (user) {
+        user.is_active = false
+        return { success: true, error: null }
+      }
+      return { success: false, error: 'User not found' }
+    }
+
     const { error } = await supabase
       .from('users')
       .update({ is_active: false })
@@ -213,6 +324,11 @@ export async function deactivateUser(id: string): Promise<{ success: boolean; er
 // Get system setting
 export async function getSystemSetting(key: string): Promise<string | null> {
   try {
+    if (useLocalDB) {
+      const value = mockDatabase.system_settings[key as keyof typeof mockDatabase.system_settings]
+      return value || null
+    }
+
     const { data: setting, error } = await supabase
       .from('system_settings')
       .select('value')
@@ -232,6 +348,11 @@ export async function getSystemSetting(key: string): Promise<string | null> {
 // Update system setting
 export async function updateSystemSetting(key: string, value: string): Promise<{ success: boolean; error: string | null }> {
   try {
+    if (useLocalDB) {
+      mockDatabase.system_settings[key as keyof typeof mockDatabase.system_settings] = value as any
+      return { success: true, error: null }
+    }
+
     const { error } = await supabase
       .from('system_settings')
       .upsert(
