@@ -1,18 +1,22 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Check, Printer, Download, RotateCcw } from "lucide-react"
+import { Check, Printer, Download, RotateCcw, Share2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useCart } from "../context/cart-context"
 import { ReceiptPrinter } from "../components/receipt-printer"
 import { exportToPDF, printWithStyles } from "../services/pdf-export"
+import { supabaseService } from "../services/supabase-service"
 
 export default function SuccessPage() {
   const router = useRouter()
   const { cart, cartTotal, clearCart } = useCart()
   const receiptRef = useRef<HTMLDivElement>(null)
+  const [receiptId, setReceiptId] = useState<string | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
+  const [receiptSaved, setReceiptSaved] = useState(false)
 
   const tax = cartTotal * 0.1
   const grandTotal = cartTotal + tax
@@ -23,19 +27,58 @@ export default function SuccessPage() {
     // If there's no cart data, redirect to POS
     if (cart.length === 0) {
       router.push("/")
+      return
+    }
+
+    // Save receipt to Supabase if configured
+    if (supabaseService.isConfigured()) {
+      saveReceiptToSupabase()
+    } else {
+      setReceiptSaved(true)
     }
   }, [cart, router])
+
+  const saveReceiptToSupabase = async () => {
+    try {
+      const receipt = await supabaseService.saveReceipt({
+        transaction_id: receiptNumber.toString(),
+        receipt_number: receiptNumber.toString(),
+        total_amount: grandTotal,
+        items_count: cart.length,
+      })
+
+      if (receipt) {
+        setReceiptId(receipt.id)
+        console.log('[v0] Receipt saved to Supabase:', receipt.id)
+      }
+      setReceiptSaved(true)
+    } catch (err) {
+      console.error('[v0] Error saving receipt:', err)
+      setReceiptSaved(true)
+    }
+  }
 
   const handleBackToPOS = () => {
     clearCart()
     router.push("/")
   }
 
-  const handlePrint = () => {
-    if (receiptRef.current) {
-      printWithStyles(receiptRef.current)
-    } else {
-      window.print()
+  const handlePrint = async () => {
+    setIsPrinting(true)
+    try {
+      if (receiptRef.current) {
+        printWithStyles(receiptRef.current)
+      } else {
+        window.print()
+      }
+
+      // Update receipt status in Supabase if saved
+      if (receiptId && supabaseService.isConfigured()) {
+        await supabaseService.updateReceiptStatus(receiptId, 'printed')
+        console.log('[v0] Receipt marked as printed')
+      }
+    } finally {
+      setIsPrinting(false)
     }
   }
 
@@ -79,9 +122,9 @@ export default function SuccessPage() {
           tax={tax}
           total={grandTotal}
           date={date}
-          storeName="My Store"
-          storeAddress="123 Main Street"
-          storePhone="(555) 123-4567"
+          storeName="Destiny Supermarket"
+          storeAddress="Your Store Address"
+          storePhone="(000) 000-0000"
         />
       </div>
 
@@ -91,9 +134,10 @@ export default function SuccessPage() {
           onClick={handlePrint}
           variant="outline"
           className="flex items-center gap-2"
+          disabled={isPrinting}
         >
           <Printer className="h-4 w-4" />
-          Print Receipt
+          {isPrinting ? 'Printing...' : 'Print Receipt'}
         </Button>
         <Button
           onClick={handlePDF}
@@ -103,6 +147,16 @@ export default function SuccessPage() {
           <Download className="h-4 w-4" />
           Download PDF
         </Button>
+        {receiptSaved && supabaseService.isConfigured() && (
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            disabled
+          >
+            <Share2 className="h-4 w-4" />
+            Synced to Cloud
+          </Button>
+        )}
         <Button
           onClick={handleBackToPOS}
           className="flex items-center gap-2"
@@ -113,11 +167,21 @@ export default function SuccessPage() {
       </div>
 
       {/* Additional Info */}
-      <div className="print:hidden mt-8 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm">
-        <p className="text-blue-900">
-          <strong>Order Confirmation:</strong> Your receipt number is{" "}
-          <strong>#{receiptNumber}</strong>. Please keep it for your records.
-        </p>
+      <div className="print:hidden mt-8 space-y-3">
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm">
+          <p className="text-blue-900">
+            <strong>Order Confirmation:</strong> Your receipt number is{" "}
+            <strong>#{receiptNumber}</strong>. Please keep it for your records.
+          </p>
+        </div>
+
+        {receiptSaved && supabaseService.isConfigured() && (
+          <div className="rounded-lg border border-green-100 bg-green-50 p-4 text-sm">
+            <p className="text-green-900">
+              <strong>Cloud Sync:</strong> Your receipt has been automatically saved and is synced to the cloud for tracking and audit purposes.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

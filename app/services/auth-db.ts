@@ -1,19 +1,20 @@
 import bcrypt from 'bcryptjs'
 
+// Internal user storage type (includes password_hash)
+interface StoredUser {
+  id: string
+  email: string
+  password_hash: string
+  full_name: string | null
+  role: 'admin' | 'employee'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 // Local mock database for when Supabase is not configured
 const mockDatabase = {
-  users: [
-    {
-      id: 'admin-001',
-      email: 'admin@destiny.com',
-      password_hash: '$2a$10$abcdefghijklmnopqrstuvwxyz123456', // Mock hash
-      full_name: 'Admin User',
-      role: 'admin' as const,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-  ],
+  users: [] as StoredUser[],
   system_settings: {
     'allow_employee_signup': 'true',
     'store_name': 'Destiny Supermarket'
@@ -25,6 +26,35 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const useLocalDB = !supabaseUrl || !supabaseAnonKey
 let supabase: any = null
+
+// Initialize demo accounts for local database
+async function initializeDemoAccounts() {
+  if (mockDatabase.users.length === 0 && useLocalDB) {
+    // Create demo admin account with password123
+    const demoAdminHash = await hashPassword('password123')
+    mockDatabase.users.push({
+      id: 'admin-001',
+      email: 'admin@example.com',
+      password_hash: demoAdminHash,
+      full_name: 'Admin User',
+      role: 'admin',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as StoredUser)
+    console.log('[v0] Demo admin account initialized: admin@example.com')
+  }
+}
+
+// Initialize on module load - make it synchronous on first import
+let initializePromise: Promise<void> | null = null
+if (useLocalDB) {
+  initializePromise = initializeDemoAccounts()
+    .catch(err => {
+      console.error('[v0] Error initializing demo accounts:', err)
+      // Don't fail - fallback to empty users list
+    })
+}
 
 // Initialize Supabase client if credentials exist
 if (!useLocalDB) {
@@ -83,7 +113,7 @@ export async function signupUser(data: SignupData): Promise<{ user: User | null;
       const passwordHash = await hashPassword(data.password)
 
       // Create user in local DB
-      const newUser: User = {
+      const storedUser: StoredUser = {
         id: 'user-' + Date.now(),
         email: data.email,
         password_hash: passwordHash,
@@ -94,9 +124,9 @@ export async function signupUser(data: SignupData): Promise<{ user: User | null;
         updated_at: new Date().toISOString(),
       }
 
-      mockDatabase.users.push(newUser as any)
-      const { password_hash, ...userWithoutPassword } = newUser
-      return { user: userWithoutPassword, error: null }
+      mockDatabase.users.push(storedUser)
+      const { password_hash, ...userWithoutPassword } = storedUser
+      return { user: userWithoutPassword as User, error: null }
     }
 
     // Check if user already exists
@@ -143,6 +173,12 @@ export async function signupUser(data: SignupData): Promise<{ user: User | null;
 export async function loginUser(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null }> {
   try {
     if (useLocalDB) {
+      // Ensure demo accounts are initialized before login
+      if (initializePromise) {
+        await initializePromise
+        initializePromise = null // Clear after first use
+      }
+
       // Get user by email from local DB
       const user = mockDatabase.users.find(u => u.email === credentials.email)
 
