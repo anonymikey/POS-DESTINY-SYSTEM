@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Menu, 
@@ -16,24 +16,15 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 
-const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div
-    className={`rounded-2xl border border-white/10 backdrop-blur-xl ${className}`}
-    style={{
-      background: 'rgba(255,255,255,0.01)',
-      backdropFilter: 'blur(4px)',
-      boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1)',
-    }}
-  >
-    {children}
-  </div>
-)
-
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [currentDate, setCurrentDate] = useState('')
   const router = useRouter()
-  
-  const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  useEffect(() => {
+    const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    setCurrentDate(date)
+  }, [])
 
   const handleEmployeeLogin = () => {
     router.push('/employee-login')
