@@ -41,14 +41,19 @@ async function initializeDemoAccounts() {
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    })
+    } as StoredUser)
     console.log('[v0] Demo admin account initialized: admin@example.com')
   }
 }
 
-// Initialize on module load
+// Initialize on module load - make it synchronous on first import
+let initializePromise: Promise<void> | null = null
 if (useLocalDB) {
-  initializeDemoAccounts().catch(err => console.error('[v0] Error initializing demo accounts:', err))
+  initializePromise = initializeDemoAccounts()
+    .catch(err => {
+      console.error('[v0] Error initializing demo accounts:', err)
+      // Don't fail - fallback to empty users list
+    })
 }
 
 // Initialize Supabase client if credentials exist
@@ -168,6 +173,12 @@ export async function signupUser(data: SignupData): Promise<{ user: User | null;
 export async function loginUser(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null }> {
   try {
     if (useLocalDB) {
+      // Ensure demo accounts are initialized before login
+      if (initializePromise) {
+        await initializePromise
+        initializePromise = null // Clear after first use
+      }
+
       // Get user by email from local DB
       const user = mockDatabase.users.find(u => u.email === credentials.email)
 
