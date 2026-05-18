@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Settings, ShoppingCart } from 'lucide-react'
+import { Search, Settings, ShoppingCart, LogOut } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import ProductGrid from './components/product-grid'
 import CartSidebar from './components/cart-sidebar'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { useCart } from './context/cart-context'
 import { categories } from './data/categories'
 import { OnboardingModal } from './components/onboarding-modal'
+import Image from 'next/image'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -33,6 +34,11 @@ export default function POSPage() {
     setIsAuthed(true)
   }, [router])
 
+  const handleLogout = () => {
+    localStorage.removeItem("pos_employee_access")
+    router.push("/landing")
+  }
+
   if (!isAuthed) {
     return null // Don't render until auth check is complete
   }
@@ -45,7 +51,21 @@ export default function POSPage() {
         <div className="sticky top-0 z-10 bg-background p-4 border-b">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">Point of Sale</h1>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 relative">
+                  <Image 
+                    src="/destiny-logo.png" 
+                    alt="Destiny Supermarket Logo" 
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">Destiny Supermarket</h1>
+                  <p className="text-xs text-muted-foreground">Point of Sale System</p>
+                </div>
+              </div>
               <div className="flex gap-2 md:hidden">
                 <Button
                   variant="outline"
@@ -59,11 +79,20 @@ export default function POSPage() {
                 <Button variant="outline" size="sm" onClick={() => router.push("/admin")}>
                   <Settings className="h-4 w-4" />
                 </Button>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={() => router.push("/admin")} className="hidden md:flex">
-                <Settings className="h-4 w-4 mr-2" />
-                Admin
-              </Button>
+              <div className="flex gap-2 md:flex-row hidden">
+                <Button variant="outline" size="sm" onClick={() => router.push("/admin")}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <MobileCategorySelector

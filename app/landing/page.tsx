@@ -14,7 +14,7 @@ import {
   Lock,
   LogIn
 } from 'lucide-react'
-import { Slider3D } from '@/components/3d-slider-section'
+import Image from 'next/image'
 
 const LiquidGlassCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div
@@ -54,10 +54,19 @@ export default function LandingPage() {
       <nav className="relative z-20 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
-              <Package className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 relative">
+              <Image 
+                src="/destiny-logo.png" 
+                alt="Destiny Supermarket Logo" 
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="text-lg font-bold tracking-tight">DESTINY</span>
+            <div>
+              <span className="text-lg font-bold tracking-tight">DESTINY</span>
+              <p className="text-xs text-white/50">SUPERMARKET</p>
+            </div>
           </div>
 
           {/* Desktop Menu */}
@@ -133,15 +142,15 @@ export default function LandingPage() {
 
         {/* Main Headline */}
         <h1 className="text-4xl md:text-7xl font-bold tracking-tight leading-[0.9] mb-6 max-w-4xl">
-          Your supermarket.{' '}
+          Destiny Supermarket{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A4F4FD] via-[#A4F4FD] to-[#00d2ff]">
-            Unified.
+            Checkout.
           </span>
         </h1>
 
         {/* Subheading */}
         <p className="mt-8 text-white/60 max-w-2xl text-base md:text-lg leading-relaxed">
-          DESTINY transforms your supermarket operations into a seamless ecosystem. Real-time inventory, lightning-fast checkout, complete employee management, and powerful analytics—all in one unified platform.
+          The official Point of Sale system for Destiny Supermarket. Fast card processing, inventory tracking, employee management, and secure transactions—all designed specifically for Destiny Supermarket operations.
         </p>
 
         {/* CTA Buttons */}
@@ -387,14 +396,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3D Slider Section */}
-      <Slider3D />
+
 
       {/* CTA Footer */}
       <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to transform your supermarket?</h2>
+        <h2 className="text-3xl md:text-5xl font-bold mb-6">Get Started with Destiny Supermarket POS</h2>
         <p className="text-white/60 max-w-2xl mx-auto mb-8 text-base">
-          Join retailers worldwide using DESTINY to streamline operations and boost profits.
+          Access the official POS system for Destiny Supermarket. Fast checkout, secure card processing, and complete inventory management.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
@@ -413,50 +421,45 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center">
-                  <Package className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 relative">
+                  <Image 
+                    src="/destiny-logo.png" 
+                    alt="Destiny Supermarket Logo" 
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <span className="font-bold">DESTINY</span>
+                <div>
+                  <span className="font-bold block">DESTINY</span>
+                  <span className="text-xs text-white/50">SUPERMARKET</span>
+                </div>
               </div>
-              <p className="text-xs text-white/60">Enterprise POS for supermarkets</p>
+              <p className="text-xs text-white/60">Official POS System for Destiny Supermarket</p>
             </div>
             <div>
-              <h4 className="text-sm font-semibold mb-4">Product</h4>
+              <h4 className="text-sm font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-xs text-white/60">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-xs text-white/60">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="#" className="hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-white">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white">Documentation</a></li>
               </ul>
             </div>
             <div>
               <h4 className="text-sm font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-xs text-white/60">
-                <li><a href="#" className="hover:text-white">Privacy</a></li>
-                <li><a href="#" className="hover:text-white">Terms</a></li>
-                <li><a href="#" className="hover:text-white">Cookies</a></li>
+                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white">Security</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex justify-between items-center text-xs text-white/60">
-            <span>© 2024 DESTINY POS. All rights reserved.</span>
-            <div className="flex gap-4">
-              {['Twitter', 'LinkedIn', 'GitHub'].map((social) => (
-                <a key={social} href="#" className="hover:text-white transition">
-                  {social}
-                </a>
-              ))}
-            </div>
+            <span>© 2024 Destiny Supermarket. All rights reserved.</span>
+            <span>Secure POS System</span>
           </div>
         </div>
       </footer>

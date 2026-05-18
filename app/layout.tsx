@@ -8,8 +8,8 @@ import { AuthProvider } from "./context/auth-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "DESTINY - POS System",
-  description: "Enterprise Point of Sale System",
+  title: "Destiny Supermarket - POS System",
+  description: "Official Point of Sale System for Destiny Supermarket - Secure card processing, fast checkout, inventory management",
   generator: 'v0.app',
   viewport: {
     width: 'device-width',
