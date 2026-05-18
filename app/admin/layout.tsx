@@ -16,6 +16,7 @@ import {
   X,
   LogOut,
   Store,
+  Receipt,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Transactions", href: "/admin/transactions", icon: Receipt },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Categories", href: "/admin/categories", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },

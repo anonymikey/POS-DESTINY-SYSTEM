@@ -69,14 +69,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex gap-8 items-center">
-            {['Features', 'Pricing', 'Solutions', 'Blog', 'Support'].map((item) => (
-              <a key={item} href="#" className="text-white/70 text-sm font-medium hover:text-white transition">
-                {item}
-              </a>
-            ))}
-          </div>
+
 
           <div className="flex items-center gap-4">
             <button

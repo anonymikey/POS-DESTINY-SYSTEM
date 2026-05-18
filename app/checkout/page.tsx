@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCart } from "../context/cart-context"
 import { db } from "../services/database"
+import { supabaseService } from "../services/supabase-service"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -69,6 +70,33 @@ export default function CheckoutPage() {
         console.log("[v0] Processing card payment for Destiny Supermarket purchase")
       }
 
+      const receiptNumber = Math.floor(100000 + Math.random() * 900000).toString()
+
+      // Prepare transaction data for Supabase
+      const transactionData = {
+        receipt_number: receiptNumber,
+        customer_name: customer?.name,
+        total_amount: grandTotal,
+        payment_method: paymentMethod as 'cash' | 'card',
+        card_last_4: paymentMethod === "card" ? cardNumber.slice(-4) : undefined,
+        items: cart.map((item) => ({
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.price * item.quantity,
+        })),
+        subtotal: cartTotal,
+        tax: tax,
+        discount: discountAmount,
+      }
+
+      // Save to Supabase (if configured) - non-blocking
+      supabaseService.saveTransaction(transactionData).catch(err => 
+        console.error('[v0] Error saving to Supabase:', err)
+      )
+
+      // Also save to local storage for offline support
       const transaction = {
         id: Date.now().toString(),
         customerId: customer?.id,
@@ -85,12 +113,12 @@ export default function CheckoutPage() {
         total: grandTotal,
         paymentMethod: paymentMethod,
         cardLast4: paymentMethod === "card" ? cardNumber.slice(-4) : undefined,
-        destinySupermarket: true, // Mark this as Destiny Supermarket transaction
+        destinySupermarket: true,
         timestamp: new Date(),
-        receiptNumber: Math.floor(100000 + Math.random() * 900000).toString(),
+        receiptNumber: receiptNumber,
       }
 
-      // Save transaction
+      // Save transaction to local storage
       await db.saveTransaction(transaction)
 
       // Update customer loyalty points and spending
