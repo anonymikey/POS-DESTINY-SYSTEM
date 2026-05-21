@@ -92,11 +92,6 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/40">
             <div className="px-6 py-4 space-y-4">
-              {['Features', 'Pricing', 'Solutions', 'Blog', 'Support'].map((item) => (
-                <a key={item} href="#" className="block text-white/70 text-sm hover:text-white">
-                  {item}
-                </a>
-              ))}
               <button
                 onClick={handleEmployeeLogin}
                 className="w-full flex items-center justify-center gap-2 rounded-lg border border-white/10 text-white text-sm font-medium px-4 py-2 hover:bg-white/5 transition"
@@ -427,17 +422,17 @@ export default function LandingPage() {
             <div>
               <h4 className="text-sm font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-xs text-white/60">
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
+                <li><a href="/documentation" className="hover:text-white">Documentation</a></li>
+                <li><a href="/contact" className="hover:text-white">Contact Us</a></li>
+                <li><a href="mailto:admin@anonymikletech.online" className="hover:text-white">Email Support</a></li>
               </ul>
             </div>
             <div>
               <h4 className="text-sm font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-xs text-white/60">
-                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white">Security</a></li>
+                <li><a href="/privacy" className="hover:text-white">Privacy Policy</a></li>
+                <li><a href="/terms" className="hover:text-white">Terms of Service</a></li>
+                <li><a href="/security" className="hover:text-white">Security</a></li>
               </ul>
             </div>
           </div>
