@@ -28,6 +28,8 @@ export default function EmployeeLoginPage() {
     try {
       const { success, error: loginError } = await login(email, password)
       if (success) {
+        // Set localStorage flag for POS page and redirect to POS dashboard
+        localStorage.setItem("pos_employee_access", "true")
         router.push("/")
       } else {
         setError(loginError || "Login failed")

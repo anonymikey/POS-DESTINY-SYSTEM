@@ -209,7 +209,13 @@ export async function loginUser(credentials: LoginCredentials): Promise<{ user: 
       .eq('email', credentials.email)
       .single()
 
-    if (error || !user) {
+    if (error) {
+      console.log('[v0] Supabase query error:', error.message)
+      return { user: null, error: 'Invalid email or password' }
+    }
+
+    if (!user) {
+      console.log('[v0] User not found in Supabase:', credentials.email)
       return { user: null, error: 'Invalid email or password' }
     }
 
@@ -221,9 +227,11 @@ export async function loginUser(credentials: LoginCredentials): Promise<{ user: 
     // Verify password
     const passwordMatch = await comparePassword(credentials.password, user.password_hash)
     if (!passwordMatch) {
+      console.log('[v0] Password verification failed for:', credentials.email)
       return { user: null, error: 'Invalid email or password' }
     }
 
+    console.log('[v0] Supabase login successful for:', credentials.email, 'role:', user.role)
     // Remove password hash from response
     const { password_hash, ...userWithoutPassword } = user
     return { user: userWithoutPassword as User, error: null }
