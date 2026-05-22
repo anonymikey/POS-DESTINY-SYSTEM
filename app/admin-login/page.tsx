@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/context/auth-context"
 import { Button } from "@/components/ui/button"
@@ -99,22 +98,9 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          {/* Signup Link */}
-          <div className="mt-6 text-center">
-            <p className="text-slate-400 text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="/admin-signup" className="text-blue-400 hover:text-blue-300 font-medium">
-                Create one here
-              </Link>
-            </p>
-          </div>
 
-          {/* Demo Info */}
-          <div className="mt-6 p-4 bg-slate-700/50 border border-slate-600 rounded-lg">
-            <p className="text-slate-400 text-xs mb-2 font-medium">Demo Credentials:</p>
-            <p className="text-slate-400 text-xs">Email: admin@example.com</p>
-            <p className="text-slate-400 text-xs">Password: password123</p>
-          </div>
+
+
         </div>
       </div>
     </div>

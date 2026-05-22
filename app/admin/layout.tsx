@@ -4,6 +4,8 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { AdminRouteGuard } from "@/app/components/admin-route-guard"
+import { useAuth } from "@/app/context/auth-context"
 import {
   LayoutDashboard,
   Package,
@@ -39,6 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const { userRole } = useAuth()
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <div className={cn("flex h-full flex-col", mobile ? "w-full" : "w-64")}>
@@ -88,32 +91,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   )
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className="flex w-64 flex-col border-r bg-white">
-          <Sidebar />
+    <AdminRouteGuard>
+      <div className="flex h-screen bg-gray-50">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex lg:flex-shrink-0">
+          <div className="flex w-64 flex-col border-r bg-white">
+            <Sidebar />
+          </div>
         </div>
-      </div>
 
-      {/* Mobile Sidebar */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64">
-          <Sidebar mobile />
-        </SheetContent>
-      </Sheet>
+        {/* Mobile Sidebar */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="p-0 w-64">
+            <Sidebar mobile />
+          </SheetContent>
+        </Sheet>
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Mobile Header */}
-        <div className="flex h-16 items-center justify-between border-b bg-white px-4 lg:hidden">
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-          </Sheet>
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Mobile Header */}
+          <div className="flex h-16 items-center justify-between border-b bg-white px-4 lg:hidden">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+            </Sheet>
           <div className="flex items-center gap-2">
             <Store className="h-6 w-6 text-primary" />
             <span className="font-bold">POS Admin</span>
@@ -127,5 +131,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
       </div>
     </div>
+    </AdminRouteGuard>
   )
 }
