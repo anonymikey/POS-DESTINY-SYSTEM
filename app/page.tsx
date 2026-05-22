@@ -11,40 +11,43 @@ import MobileCategorySelector from './components/mobile-category-selector'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useCart } from './context/cart-context'
+import { useAuth } from './context/auth-context'
 import { categories } from './data/categories'
 import { OnboardingModal } from './components/onboarding-modal'
+import { useInactivityLogout } from './hooks/use-inactivity-logout'
+import { InactivityWarningDialog } from './components/inactivity-warning-dialog'
 import Image from 'next/image'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [showMobileCart, setShowMobileCart] = useState(false)
-  const [isAuthed, setIsAuthed] = useState(false)
   const router = useRouter()
   const { itemCount } = useCart()
+  const { isAuthenticated, user, logout } = useAuth()
+  const { showWarning, countdown, dismissWarning } = useInactivityLogout(handleLogout, 10)
 
   useEffect(() => {
-    // Check if user is coming from landing page with employee access
-    const isEmployee = localStorage.getItem("pos_employee_access") === "true"
-    if (!isEmployee) {
-      // Redirect to landing page if not authenticated as employee
+    // Redirect to landing if not authenticated
+    if (!isAuthenticated) {
       router.push("/landing")
-      return
     }
-    setIsAuthed(true)
-  }, [router])
+  }, [isAuthenticated, router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("pos_employee_access")
+  async function handleLogout() {
+    await logout()
     router.push("/landing")
   }
 
-  if (!isAuthed) {
-    return null // Don't render until auth check is complete
-  }
-
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-background">
+    <>
+      <InactivityWarningDialog
+        open={showWarning}
+        countdown={countdown}
+        onDismiss={dismissWarning}
+        onLogout={handleLogout}
+      />
+      <div className="flex flex-col md:flex-row h-screen bg-background">
       <CategorySidebar selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -108,19 +111,9 @@ export default function POSPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto p-4">
-          <ProductGrid category={selectedCategory} searchQuery={searchQuery} />
         </div>
       </main>
-
-      <CartSidebar />
-      <MobileCartDrawer isOpen={showMobileCart} onClose={() => setShowMobileCart(false)} />
-      <OnboardingModal />
     </div>
+    </>
   )
 }
