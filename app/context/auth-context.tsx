@@ -23,32 +23,25 @@ interface AuthContextType {
   adminSignup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error: string | null }>
   createEmployeeAccount: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error: string | null }>
   logout: () => Promise<void>
+  sessionToken: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load user from localStorage on mount
+  // Load user from session storage on mount (in-memory session only, no localStorage)
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedUser = localStorage.getItem('auth_user')
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser)
-          // Verify user still exists in database
-          const dbUser = await getUserById(parsedUser.id)
-          if (dbUser) {
-            setUser(dbUser)
-          } else {
-            localStorage.removeItem('auth_user')
-          }
-        }
+        // Sessions are now stored only in memory via sessionToken
+        // This ensures logout clears everything when user closes tab/browser
+        setIsLoading(false)
       } catch (error) {
         console.error('[v0] Error loading auth user:', error)
-        localStorage.removeItem('auth_user')
       } finally {
         setIsLoading(false)
       }
@@ -65,8 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error || 'Login failed' }
       }
 
+      // Generate a session token (in-memory only, no localStorage)
+      const token = `session_${dbUser.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       setUser(dbUser)
-      localStorage.setItem('auth_user', JSON.stringify(dbUser))
+      setSessionToken(token)
       return { success: true, error: null }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
@@ -96,8 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error || 'Signup failed' }
       }
 
+      const token = `session_${newUser.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       setUser(newUser)
-      localStorage.setItem('auth_user', JSON.stringify(newUser))
+      setSessionToken(token)
       return { success: true, error: null }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup'
@@ -121,8 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error || 'Admin signup failed' }
       }
 
+      const token = `session_${newAdmin.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       setUser(newAdmin)
-      localStorage.setItem('auth_user', JSON.stringify(newAdmin))
+      setSessionToken(token)
       return { success: true, error: null }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup'
@@ -156,7 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     setUser(null)
-    localStorage.removeItem('auth_user')
+    setSessionToken(null)
+    // Clear any remaining localStorage auth keys for security
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('pos_employee_access')
+    }
   }
 
   return (
@@ -171,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         adminSignup,
         createEmployeeAccount,
         logout,
+        sessionToken,
       }}
     >
       {children}
