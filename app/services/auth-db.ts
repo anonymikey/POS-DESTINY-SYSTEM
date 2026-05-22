@@ -27,34 +27,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const useLocalDB = !supabaseUrl || !supabaseAnonKey
 let supabase: any = null
 
-// Initialize demo accounts for local database
-async function initializeDemoAccounts() {
-  if (mockDatabase.users.length === 0 && useLocalDB) {
-    // Create demo admin account with password123
-    const demoAdminHash = await hashPassword('password123')
-    mockDatabase.users.push({
-      id: 'admin-001',
-      email: 'admin@example.com',
-      password_hash: demoAdminHash,
-      full_name: 'Admin User',
-      role: 'admin',
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    } as StoredUser)
-    console.log('[v0] Demo admin account initialized: admin@example.com')
-  }
-}
-
-// Initialize on module load - make it synchronous on first import
+// Demo accounts are disabled for security
+// Admins must be created manually in the database to prevent unauthorized access
 let initializePromise: Promise<void> | null = null
-if (useLocalDB) {
-  initializePromise = initializeDemoAccounts()
-    .catch(err => {
-      console.error('[v0] Error initializing demo accounts:', err)
-      // Don't fail - fallback to empty users list
-    })
-}
 
 // Initialize Supabase client if credentials exist
 if (!useLocalDB) {

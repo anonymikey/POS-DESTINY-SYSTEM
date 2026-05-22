@@ -437,7 +437,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex justify-between items-center text-xs text-white/60">
-            <span>© 2024 Destiny Supermarket. All rights reserved.</span>
+            <span>© 2026 Destiny Supermarket. All rights reserved.</span>
             <span>Secure POS System</span>
           </div>
         </div>
